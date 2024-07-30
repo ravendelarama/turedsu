@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import AuthSessionProvider from "@/providers/session-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/providers/theme-provider";
+import TanstackQueryProvider from "@/providers/tanstack-query-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +20,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <AuthSessionProvider>
+          <ThemeProvider
+            enableSystem
+            defaultTheme="dark"
+            disableTransitionOnChange
+            attribute="class"
+          >
+            <TanstackQueryProvider>
+              <div className="min-h-screen w-full">{children}</div>
+              <Toaster richColors />
+            </TanstackQueryProvider>
+          </ThemeProvider>
+        </AuthSessionProvider>
+      </body>
     </html>
   );
 }
