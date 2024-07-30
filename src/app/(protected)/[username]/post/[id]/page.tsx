@@ -10,12 +10,6 @@ export default async function PostPage({
 }: {
   params: { id: string };
 }) {
-  const session = await auth();
-
-  if (!session) {
-    return redirect("/");
-  }
-
   const post = await getPostByID(id);
   const replies = await getReplies(id);
 
