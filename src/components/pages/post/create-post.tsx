@@ -439,7 +439,7 @@ function PostCreateFormWrapper({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-background w-[36rem] min-h-[12rem] max-h-96 overflow-y-auto scale-0 transition-all ease-in duration-[50ms]",
+        "rounded-xl border bg-background w-[36rem] min-h-[12rem] max-h-96 overflow-y-auto scale-0 transition-all ease-in duration-500",
         !cancel && "scale-1"
       )}
       onClick={(e) => {
