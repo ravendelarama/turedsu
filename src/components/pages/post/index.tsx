@@ -248,7 +248,7 @@ export function PostActionButton({
 
       queryClient.setQueryData(["liked", id], (old: boolean) => !old);
 
-      setLikes(!liked ? "like" : "dislike");
+      setLikes(!prev ? "like" : "dislike");
 
       return { prev, newStat };
     },
