@@ -44,6 +44,7 @@ import { getUserQuery } from "@/actions/user";
 import { Input } from "@/components/ui/input";
 import { PostActionButton } from ".";
 import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 export const postFormSchema = z.object({
   threads: z.array(
@@ -343,18 +344,22 @@ function PostModalTrigger({
   type: "comment" | "post";
   count?: number;
 }) {
+  const { data: session } = useSession();
+
   return (
     <Button
       variant={null}
       size={null}
       className={cn(
-        "hover:bg-primary-foreground rounded-full py-2 px-3 scale-1 transition-all duration-75 ease-in",
+        "hover:bg-primary-foreground rounded-full py-2 px-3 scale-1",
         type == "post" && "h-full py-3 px-6 rounded-md",
         type == "comment" && "hover:scale-90"
       )}
       onClick={(e) => {
         e.stopPropagation();
-        setTrigger(true);
+        if (session && session?.user!) {
+          setTrigger(true);
+        }
       }}
     >
       {type == "post" ? (
@@ -392,7 +397,7 @@ function PostCancelModal({
     <>
       <div
         className={cn(
-          "p-2 select-none rounded-xl absolute w-64 bg-background border scale-0 transition-all duration-500ms ease-in",
+          "p-2 select-none rounded-xl absolute w-64 bg-background border scale-0",
           cancel && "scale-100"
         )}
       >
@@ -439,7 +444,7 @@ function PostCreateFormWrapper({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-background w-[36rem] min-h-[12rem] max-h-96 overflow-y-auto scale-0 transition-all ease-in duration-500",
+        "rounded-xl border bg-background w-[36rem] min-h-[12rem] max-h-96 overflow-y-auto scale-0 transition-all ease-in",
         !cancel && "scale-1"
       )}
       onClick={(e) => {

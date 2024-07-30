@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { PostItemHoverCard } from "./post";
-import { useQuery } from "@tanstack/react-query";
 import { getPostUserByUsername } from "@/actions/user";
 
 export const regex = {
