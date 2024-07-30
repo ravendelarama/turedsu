@@ -129,8 +129,8 @@ export function UserThreads({ user }: { user: PostUser }) {
     queryFn: async () => {
       return await getUserThreadPosts(user.id!);
     },
-    refetchInterval: 1000 * 5,
-    staleTime: 5 * 1000,
+    refetchInterval: 1000 * 30,
+    staleTime: 30 * 1000,
   });
 
   return (
