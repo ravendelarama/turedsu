@@ -224,6 +224,19 @@ export function PostActionButton({
 
   const { data: session } = useSession();
 
+  const [likes, setLikes] = useOptimistic(
+    count,
+    (state, action: "like" | "dislike") => {
+      if (action == "like") {
+        return state + 1;
+      }
+      if (action == "dislike" && state > 0) {
+        return state - 1;
+      }
+      return 0;
+    }
+  );
+
   const mutation = useMutation({
     onMutate: async (newStat) => {
       await queryClient.cancelQueries({ queryKey: ["liked", id] });
@@ -258,6 +271,7 @@ export function PostActionButton({
         if (type == "like" && session?.user) {
           startTransition(() => {
             mutation.mutate();
+            setLikes(!liked ? "like" : "dislike");
           });
         }
       }}
@@ -277,7 +291,7 @@ export function PostActionButton({
           type == "like" && session?.user && liked && "text-red-600"
         )}
       >
-        {type == "like" ? count : count}
+        {type == "like" ? likes : count}
       </p>
     </div>
   );
