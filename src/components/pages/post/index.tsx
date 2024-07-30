@@ -219,7 +219,7 @@ export function PostActionButton({
       <p
         className={cn(
           "text-xs",
-          type == "like" && (session?.user || liked) && "text-red-600"
+          type == "like" && session?.user && liked && "text-red-600"
         )}
       >
         {count}
