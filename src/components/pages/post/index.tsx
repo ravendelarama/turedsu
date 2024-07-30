@@ -240,10 +240,15 @@ export function PostActionButton({
   const mutation = useMutation({
     onMutate: async (newStat) => {
       await queryClient.cancelQueries({ queryKey: ["liked", id] });
+      await queryClient.cancelQueries({
+        queryKey: ["post", id, "counts"],
+      });
 
       const prev = queryClient.getQueryData(["liked", id]);
 
       queryClient.setQueryData(["liked", id], (old: boolean) => !old);
+
+      setLikes(!liked ? "like" : "dislike");
 
       return { prev, newStat };
     },
@@ -271,7 +276,6 @@ export function PostActionButton({
         if (type == "like" && session?.user) {
           startTransition(() => {
             mutation.mutate();
-            setLikes(!liked ? "like" : "dislike");
           });
         }
       }}
