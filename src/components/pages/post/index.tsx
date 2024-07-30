@@ -161,7 +161,7 @@ export function PostItemHoverCard({
             {numeral(user?._count.followedBy).format("0a")} Followers
           </p>
         </div>
-        {session && (
+        {session && session?.user?.id != user.id && (
           <Button
             variant={data ? "outline" : "default"}
             className="select-none w-full font-semibold"
@@ -216,7 +216,14 @@ export function PostActionButton({
         ))}
       {type == "comment" && <MessageCircle className="h-5 w-5" />}
       {type == "repost" && <RefreshCw className="h-5 w-5" />}
-      <p className="text-xs">{count}</p>
+      <p
+        className={cn(
+          "text-xs",
+          type == "like" && (session?.user || liked) && "text-red-600"
+        )}
+      >
+        {count}
+      </p>
     </div>
   );
 }
@@ -245,20 +252,6 @@ export function PostActionSection({ id }: { id: string }) {
         </Tooltip>
       </TooltipProvider>
 
-      {/* <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PostActionButton
-              type="comment"
-              count={data?._count.replies!}
-              id={id}
-            />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Comment</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider> */}
       <PostFormModal type="comment" replyId={id} />
 
       <DropdownMenu>
