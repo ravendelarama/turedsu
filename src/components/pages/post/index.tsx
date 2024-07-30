@@ -50,7 +50,12 @@ import {
   isLikedPost,
   likePost,
 } from "@/actions/post";
-import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { followUser, getPostUserByID, isFollowed } from "@/actions/user";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -100,8 +105,6 @@ export type PostItemType = {
   };
 };
 
-const queryClient = new QueryClient();
-
 // Post Item Section
 export function PostItemHoverCard({
   user,
@@ -110,6 +113,7 @@ export function PostItemHoverCard({
   user: PostUser;
   type: "bio" | "caption" | "header";
 }) {
+  const queryClient = useQueryClient();
   const { data } = useQuery({
     queryKey: ["followed", user.id],
     queryFn: async () => {
@@ -212,6 +216,7 @@ export function PostActionButton({
   count?: number;
   id: string;
 }) {
+  const queryClient = useQueryClient();
   const { data: liked, isLoading } = useQuery({
     queryKey: ["liked", id],
     queryFn: async () => await isLikedPost(id),
@@ -220,6 +225,15 @@ export function PostActionButton({
   const { data: session } = useSession();
 
   const mutation = useMutation({
+    onMutate: async (newStat) => {
+      await queryClient.cancelQueries({ queryKey: ["liked", id] });
+
+      const prev = queryClient.getQueryData(["liked", id]);
+
+      queryClient.setQueryData(["liked", id], (old: boolean) => !old);
+
+      return { prev, newStat };
+    },
     mutationFn: async () => {
       return await likePost(id);
     },
@@ -228,21 +242,12 @@ export function PostActionButton({
         queryKey: ["liked", id],
       });
     },
+    onError: (err, _, context) => {
+      queryClient.setQueryData(["liked", id], context?.prev);
+    },
   });
 
   const [isPending, startTransition] = useTransition();
-  const [likeOptimistic, setLikeOptimistic] = useOptimistic(
-    count,
-    (state, action: "like" | "dislike") => {
-      if (action == "like") {
-        return state + 1;
-      }
-      if (action == "dislike" && state >= 0) {
-        return state - 1;
-      }
-      return 0;
-    }
-  );
 
   return (
     <div
@@ -252,7 +257,6 @@ export function PostActionButton({
 
         if (type == "like" && session?.user) {
           startTransition(() => {
-            setLikeOptimistic(!liked ? "like" : "dislike");
             mutation.mutate();
           });
         }
@@ -273,7 +277,7 @@ export function PostActionButton({
           type == "like" && session?.user && liked && "text-red-600"
         )}
       >
-        {type == "like" ? likeOptimistic : count}
+        {type == "like" ? count : count}
       </p>
     </div>
   );
