@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import { followUser, isFollowed } from "@/actions/user";
 import { toast } from "sonner";
+import { Fragment, useOptimistic, useTransition } from "react";
 
 export function UserInfoSection({ user }: { user: PostUser }) {
   const { data: session } = useSession();
@@ -139,10 +140,10 @@ export function UserThreads({ user }: { user: PostUser }) {
     <div className="w-full h-full flex flex-col items-center">
       {isSuccess && data ? (
         data?.map((item, index) => (
-          <>
+          <Fragment key={index}>
             <Post post={item} />
             {index != data.length - 1 && <Separator orientation="horizontal" />}
-          </>
+          </Fragment>
         ))
       ) : (
         <LoaderCircle className="h-8 w-8 text-center animate-spin mt-10" />
@@ -174,17 +175,27 @@ export function UserProfileButtonGroups({ user }: { user: PostUser }) {
     },
   });
 
+  const [follow, setFollow] = useOptimistic(
+    data,
+    (_, action: boolean) => action
+  );
+  const [isPending, startTransition] = useTransition();
+
   return (
     <div className="py-2 w-full flex justify-between items-center gap-4">
       <Button
-        variant={data ? "outline" : "default"}
+        variant={follow ? "outline" : "default"}
         className="grow"
         onClick={(e) => {
           e.stopPropagation();
-          mutation.mutate();
+          startTransition(() => {
+            setFollow(!follow);
+            mutation.mutate();
+          });
         }}
+        disabled={isPending}
       >
-        {data ? "Following" : "Follow"}
+        {follow ? "Following" : "Follow"}
       </Button>
       <Button variant={"outline"} className="grow">
         Mention

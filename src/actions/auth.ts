@@ -7,6 +7,7 @@ import { signInSchema, signUpSchema } from "@/lib/zod"
 import bcryptjs from 'bcryptjs';
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 
 export async function register(form: FormData) {
@@ -137,4 +138,5 @@ export async function login(provider: "credentials" | "google" | "github", value
 export async function logout() {
     await signOut();
     revalidatePath('/');
+    redirect('/');
 }

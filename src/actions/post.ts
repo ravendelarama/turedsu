@@ -299,18 +299,17 @@ export async function isLikedPost(id: string) {
     const session = await auth();
 
     if (!session || !session?.user) {
-        return {
-            success: false,
-            message: "Unauthorized"
-        }
+        return false;
     }
 
-    return await db.like.findFirst({
+    const res = await db.like.count({
         where: {
             userId: session?.user.id,
             postId: id
         }
     })
+
+    return res > 0 ? true: false;
 }
 
 

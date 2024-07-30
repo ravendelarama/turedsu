@@ -50,7 +50,7 @@ import {
   isLikedPost,
   likePost,
 } from "@/actions/post";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { followUser, getPostUserByID, isFollowed } from "@/actions/user";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -59,6 +59,7 @@ import { useSession } from "next-auth/react";
 import { PostFormModal } from "./create-post";
 import numeral from "numeral";
 import { toast } from "sonner";
+import { useOptimistic, useTransition } from "react";
 
 export type PostUser = {
   id: string;
@@ -99,6 +100,8 @@ export type PostItemType = {
   };
 };
 
+const queryClient = new QueryClient();
+
 // Post Item Section
 export function PostItemHoverCard({
   user,
@@ -113,6 +116,23 @@ export function PostItemHoverCard({
       return await isFollowed(user.id);
     },
   });
+  const [follow, setFollow] = useOptimistic(data, (state, action: boolean) => {
+    return action;
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      return await followUser(user.id);
+    },
+    onSettled: async () => {
+      return await queryClient.invalidateQueries({
+        queryKey: ["follow", user.id],
+      });
+    },
+  });
+
+  const [isPending, startTransition] = useTransition();
+
   const { data: session } = useSession();
 
   return (
@@ -126,11 +146,13 @@ export function PostItemHoverCard({
             e.stopPropagation();
           }}
           asChild
+          disabled={isPending}
         >
           <Link
             href={`/@${user?.username!}`}
             className={cn(
-              "text-sm md:text-base",
+              "text-sm",
+              type == "header" && "md:text-base",
               type != "header" && "text-sky-500"
             )}
           >
@@ -167,12 +189,13 @@ export function PostItemHoverCard({
             className="select-none w-full font-semibold"
             onClick={(e) => {
               e.stopPropagation();
-              followUser(user.id).then((res) => {
-                toast.info(res.message);
+              startTransition(() => {
+                setFollow(!follow);
+                mutation.mutate();
               });
             }}
           >
-            {data ? "Following" : "Follow"}
+            {follow ? "Following" : "Follow"}
           </Button>
         )}
       </HoverCardContent>
@@ -189,13 +212,37 @@ export function PostActionButton({
   count?: number;
   id: string;
 }) {
-  const { data: liked } = useQuery({
+  const { data: liked, isLoading } = useQuery({
     queryKey: ["liked", id],
     queryFn: async () => await isLikedPost(id),
-    refetchInterval: 5 * 1000,
   });
 
   const { data: session } = useSession();
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      return await likePost(id);
+    },
+    onSettled: async () => {
+      return await queryClient.invalidateQueries({
+        queryKey: ["liked", id],
+      });
+    },
+  });
+
+  const [isPending, startTransition] = useTransition();
+  const [likeOptimistic, setLikeOptimistic] = useOptimistic(
+    count,
+    (state, action: "like" | "dislike") => {
+      if (action == "like") {
+        return state + 1;
+      }
+      if (action == "dislike" && state >= 0) {
+        return state - 1;
+      }
+      return 0;
+    }
+  );
 
   return (
     <div
@@ -204,12 +251,15 @@ export function PostActionButton({
         e.stopPropagation();
 
         if (type == "like" && session?.user) {
-          await likePost(id);
+          startTransition(() => {
+            setLikeOptimistic(!liked ? "like" : "dislike");
+            mutation.mutate();
+          });
         }
       }}
     >
       {type == "like" &&
-        (!session?.user! || !liked ? (
+        (!session?.user! || !liked || isLoading ? (
           <Heart className="h-5 w-5" />
         ) : (
           <FaHeart className="h-5 w-5 text-red-600" />
@@ -219,10 +269,11 @@ export function PostActionButton({
       <p
         className={cn(
           "text-xs",
+          type == "like" && "hover:red-600",
           type == "like" && session?.user && liked && "text-red-600"
         )}
       >
-        {count}
+        {type == "like" ? likeOptimistic : count}
       </p>
     </div>
   );

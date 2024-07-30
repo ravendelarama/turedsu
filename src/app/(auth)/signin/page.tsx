@@ -11,9 +11,11 @@ export default async function SignInPage() {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center">
+    <div className="w-full h-screen flex flex-col justify-center items-center bg-[url('/threads-auth-upper-design.webp')] object-cover bg-origin-border bg-top bg-no-repeat bg-cover">
       <div className="w-[24rem] flex flex-col justify-start items-center gap-2">
-        <p>Log in with your email and password</p>
+        <p className="text-lg font-semibold font-sans text-zinc-100">
+          Log in with your email and password
+        </p>
         <SignInForm />
       </div>
     </div>
