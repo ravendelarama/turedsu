@@ -260,6 +260,9 @@ export async function likePost(id: string) {
     const liked = await db.like.findFirst({
         where: {
             postId: id
+        },
+        include: {
+            user: true
         }
     });
 
@@ -285,6 +288,7 @@ export async function likePost(id: string) {
     }
 
     revalidatePath('/');
+    revalidatePath(`/@${liked?.user.username}/post/${liked?.postId}`);
     return {
         success: true,
         message: "Created"

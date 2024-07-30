@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import { PostItemHoverCard } from "./post";
 import { getPostUserByUsername } from "@/actions/user";
+import { useState } from "react";
+import UsernameCaptionWrapper from "./username-caption-wrapper";
 
 export const regex = {
   text: /((?:@|#|https?:\/\/)(?:\[)?[\w=?&.\/\-_:\s]+(?:\]\()?[\w=?&.\/:\-_]+(?:\))?)/g,
-  url: /(https?:\/\/(?:[a-z0-9\-]+\.)?[a-z0-9\-]+\.[a-z0-9]{2,4}(?:\/[a-z0-9\-]+)*(?:\?(?:[a-zA-Z0-9]+=[a-zA-Z0-9]+&?)+)?)/,
+  url: /(https?:\/\/(?:[a-z0-9\-]+\.)?[a-z0-9\-]+\.[a-z0-9]{2,4}(?:\/[@!?&#_+=.a-z0-9\-]+)*(?:\?(?:[@!?&#_+=.a-zA-Z0-9]+=[@!?&#_+=.a-zA-Z0-9]+&?)+)?)/,
   username: /(?:@\[)([a-z0-9_]{3,})(?:\]\()([a-z0-9_]{3,})(?:\))/,
   tag: /(?:#\[)(\w+)(?:\]\()(\w+)(?:\))/,
 };
@@ -19,11 +21,7 @@ export default function TextParser({ text }: { text: string }) {
     if (regex.username.test(part)) {
       const src = part.match(regex.username);
       if (src) {
-        getPostUserByUsername(src[1].split("@")[1]).then((data) => {
-          if (data) {
-            return <PostItemHoverCard key={index} type="caption" user={data} />;
-          }
-        });
+        return <UsernameCaptionWrapper username={src[1]} />;
       }
     }
     if (regex.tag.test(part)) {

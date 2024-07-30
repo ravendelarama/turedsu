@@ -314,7 +314,7 @@ export function PostFormModal({
       />
       <div
         className={cn(
-          "bg-background/50 w-full h-screen border border-blue-300 justify-center items-center z-50 fixed inset-0 hidden",
+          "bg-background/50 w-full h-screen justify-center items-center z-50 fixed inset-0 hidden",
           trigger && "flex"
         )}
         onClick={(e) => {
@@ -363,7 +363,7 @@ function PostModalTrigger({
       }}
     >
       {type == "post" ? (
-        <SquarePlus className="h-7 w-7 text-zinc-600" />
+        <SquarePlus className="h-6 w-6 md:h-7 md:w-7 text-zinc-600" />
       ) : (
         <TooltipProvider>
           <Tooltip>

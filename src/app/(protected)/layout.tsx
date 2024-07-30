@@ -1,3 +1,4 @@
+import FooterNav from "@/components/layouts/footer-nav";
 import HeaderLayoutPage from "@/components/layouts/header";
 import MainPageLayout from "@/components/layouts/main";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,6 +9,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     <div className="relative">
       <HeaderLayoutPage />
       <MainPageLayout>{children}</MainPageLayout>
+      <FooterNav />
       <Toaster richColors />
     </div>
   );

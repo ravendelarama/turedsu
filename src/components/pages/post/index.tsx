@@ -43,7 +43,6 @@ import {
   Trash,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Post as PostType } from "@prisma/client";
 import TextParser from "../text-parser";
 import {
   deletePost,
@@ -52,13 +51,14 @@ import {
   likePost,
 } from "@/actions/post";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getPostUserByID } from "@/actions/user";
+import { followUser, getPostUserByID, isFollowed } from "@/actions/user";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { PostFormModal } from "./create-post";
 import numeral from "numeral";
+import { toast } from "sonner";
 
 export type PostUser = {
   id: string;
@@ -107,6 +107,14 @@ export function PostItemHoverCard({
   user: PostUser;
   type: "bio" | "caption" | "header";
 }) {
+  const { data } = useQuery({
+    queryKey: ["followed", user.id],
+    queryFn: async () => {
+      return await isFollowed(user.id);
+    },
+  });
+  const { data: session } = useSession();
+
   return (
     <HoverCard>
       <HoverCardTrigger className="text-sm cursor-pointer" asChild>
@@ -147,20 +155,26 @@ export function PostItemHoverCard({
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
         </div>
-        <div className="select-none text-sm md:text-base space-y-2">
+        <div className="select-none text-sm space-y-2">
           <p className="whitespace-pre-line">{user?.bio}</p>
           <p className="text-zinc-500">
             {numeral(user?._count.followedBy).format("0a")} Followers
           </p>
         </div>
-        <Button
-          className="select-none w-full font-semibold"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          Follow
-        </Button>
+        {session && (
+          <Button
+            variant={data ? "outline" : "default"}
+            className="select-none w-full font-semibold"
+            onClick={(e) => {
+              e.stopPropagation();
+              followUser(user.id).then((res) => {
+                toast.info(res.message);
+              });
+            }}
+          >
+            {data ? "Following" : "Follow"}
+          </Button>
+        )}
       </HoverCardContent>
     </HoverCard>
   );
@@ -214,6 +228,7 @@ export function PostActionSection({ id }: { id: string }) {
       return await getPostCounts(id);
     },
     refetchInterval: 5 * 1000,
+    staleTime: 0,
   });
 
   const reposts = data?._count?.reposts! + data?._count?.quotedBy! || 0;
@@ -286,7 +301,7 @@ export function PostActionSection({ id }: { id: string }) {
 
 export function PostCaption({ caption }: { caption: string }) {
   return (
-    <div className="text-sm md:text-base whitespace-pre-line break-all">
+    <div className="text-sm whitespace-pre-line break-all">
       <TextParser text={caption} />
     </div>
   );

@@ -71,7 +71,7 @@ export function UserAvatarGroup({
 
 export function UserBio({ bio }: { bio: string | null }) {
   return (
-    <p className="text-sm md:text-base whitespace-pre-line break-words">
+    <p className="text-sm whitespace-pre-line break-words">
       <TextParser text={bio ?? ""} />
     </p>
   );
@@ -86,7 +86,7 @@ export function UserSocialGroup({ user }: { user: PostUser }) {
         </p>
         <Dot className="h-2 w-2 text-zinc-500" />
         <Link
-          className="text-sm md:text-base text-zinc-600 hover:underline"
+          className="text-sm md:text-base text-zinc-600 hover:underline text-ellipsis w-36 lg:w-fit overflow-hidden lg:overflow-auto"
           href={"https://instagram.com/_rxybxn"}
           target="_"
         >
