@@ -111,6 +111,8 @@ export async function login(provider: "credentials" | "google" | "github", value
             image: user.image
         });
 
+        revalidatePath('/');
+
         return {
             success: true,
             message: "Signed in"
@@ -119,6 +121,7 @@ export async function login(provider: "credentials" | "google" | "github", value
 
     try {
         await signIn(provider);
+        revalidatePath('/');
         return {
             success: true,
             message: "Signed in"
