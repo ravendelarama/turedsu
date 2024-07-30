@@ -21,7 +21,7 @@ export default function TextParser({ text }: { text: string }) {
     if (regex.username.test(part)) {
       const src = part.match(regex.username);
       if (src) {
-        return <UsernameCaptionWrapper username={src[1]} />;
+        return <UsernameCaptionWrapper key={index} username={src[1]} />;
       }
     }
     if (regex.tag.test(part)) {

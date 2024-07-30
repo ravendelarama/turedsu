@@ -48,7 +48,7 @@ export function SignupForm() {
     return () => {
       window.URL.revokeObjectURL(preview);
     };
-  }, [form.getValues().avatar]);
+  }, [form.getValues().avatar, form, preview]);
 
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
     console.log(values);
