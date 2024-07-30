@@ -15,14 +15,15 @@ export const regex = {
 export default function TextParser({ text }: { text: string }) {
   const parts = text.split(regex.text);
 
-  const parsed = parts.map(async (part, index) => {
+  const parsed = parts.map((part, index) => {
     if (regex.username.test(part)) {
       const src = part.match(regex.username);
       if (src) {
-        const data = await getPostUserByUsername(src[1].split("@")[1]);
-        if (data) {
-          return <PostItemHoverCard key={index} type="caption" user={data} />;
-        }
+        getPostUserByUsername(src[1].split("@")[1]).then((data) => {
+          if (data) {
+            return <PostItemHoverCard key={index} type="caption" user={data} />;
+          }
+        });
       }
     }
     if (regex.tag.test(part)) {

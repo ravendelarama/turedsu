@@ -13,17 +13,4 @@ export async function createRepost({ postId }: { postId: string; }) {
             message: "Unauthorized"
         }
     }
-
-    const user = await db.user.findUnique({
-        where: {
-            email: session?.user.email!
-        }
-    });
-
-    if (!user) {
-        return {
-            success: false,
-            message: "Unauthorized"
-        }
-    }
 }

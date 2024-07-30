@@ -18,12 +18,6 @@ export async function createPost(form: FormData) {
         }
     }
 
-    const user = await db.user.findUnique({
-        where: {
-            email: session?.user?.email!
-        }
-    });
-
     const newThreads: Post[] = [];
     const replyId = form.get('replyId');
 
@@ -31,7 +25,7 @@ export async function createPost(form: FormData) {
 
         const newPost = await db.post.create({
             data: {
-                userId: user?.id!,
+                userId: session?.user?.id!,
                 caption: form.getAll('threads.captions')[i] as string ?? "",
                 parentId: i > 0 ? newThreads[i - 1].id: i == 0 && replyId ? replyId as string: null
             }
@@ -125,19 +119,6 @@ export async function deletePost(id: string) {
 
 
     if (!session || !session?.user) {
-        return {
-            success: false,
-            message: "Unauthorized"
-        }
-    }
-
-    const user = await db.user.findUnique({
-        where: {
-            email: session?.user?.email!
-        }
-    });
-
-    if (!user) {
         return {
             success: false,
             message: "Unauthorized"
@@ -276,19 +257,6 @@ export async function likePost(id: string) {
         }
     }
 
-    const user = await db.user.findUnique({
-        where: {
-            email: session?.user?.email!
-        }
-    });
-
-    if (!user) {
-        return {
-            success: false,
-            message: "Unauthorized"
-        }
-    }
-
     const liked = await db.like.findFirst({
         where: {
             postId: id
@@ -303,7 +271,7 @@ export async function likePost(id: string) {
             data: {
                 likes: {
                     create: {
-                        userId: user?.id!
+                        userId: session?.user?.id!
                     }
                 }
             }
@@ -333,22 +301,9 @@ export async function isLikedPost(id: string) {
         }
     }
 
-    const user = await db.user.findUnique({
-        where: {
-            email: session?.user?.email!
-        }
-    });
-
-    if (!user) {
-        return {
-            success: false,
-            message: "Unauthorized"
-        }
-    }
-
     return await db.like.findFirst({
         where: {
-            userId: user.id,
+            userId: session?.user.id,
             postId: id
         }
     })

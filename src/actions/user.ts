@@ -32,6 +32,10 @@ export async function getPostUserByID(id: string) {
 
 
 export async function getPostUserByUsername(username: string) {
+    if (!username) {
+        return null;
+    }
+
     const user = await db.user.findFirst({
         where: {
             username
@@ -83,25 +87,12 @@ export async function followUser(id: string) {
         }
     }
 
-    const user = await db.user.findUnique({
-        where: {
-            email: session?.user.email!
-        }
-    });
-
-    if (!user) {
-        return {
-            success: false,
-            message: "Unauthorized"
-        }
-    }
-
     const following = await db.user.findFirst({
         where: {
             id,
             followedBy: {
                 some: {
-                    id: user.id
+                    id: session?.user?.id
                 }
             }
         }
@@ -115,31 +106,50 @@ export async function followUser(id: string) {
             data: {
                 followedBy: {
                     connect: {
-                        id: user.id
+                        id: session?.user?.id
                     }
                 }
             }
         });
 
-    }
-
-    await db.user.update({
-        where: {
-            id
-        },
-        data: {
-            followedBy: {
-                disconnect: {
-                    id: user.id
+    } else {
+        await db.user.update({
+            where: {
+                id
+            },
+            data: {
+                followedBy: {
+                    disconnect: {
+                        id: session?.user?.id
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
-    revalidatePath('/');
+    revalidatePath(`/@${following?.username}`);
 
     return {
         success: true,
         message: "Done"
     }
+}
+
+export async function isFollowed(id: string) {
+    const session = await auth();
+
+    if (!session) {
+        return false;
+    }
+
+    const count = await db.user.count({
+        where: {
+            id,
+            followedByIDs: {
+                has: session?.user?.id!
+            }
+        }
+    });
+
+    return count > 0 ? true : false;
 }

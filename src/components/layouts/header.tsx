@@ -26,9 +26,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
+import { getPostUserByID } from "@/actions/user";
 
 export default function HeaderLayoutPage() {
   const session = useSession();
+  const { data } = useQuery({
+    queryKey: ["user", session?.data?.user?.id!],
+    queryFn: async () => {
+      return await getPostUserByID(session?.data?.user?.id! ?? "");
+    },
+  });
   const pathname = usePathname();
   const router = useRouter();
 
@@ -103,7 +111,9 @@ export default function HeaderLayoutPage() {
           className="h-full hover:bg-primary-foreground py-3 px-6"
           asChild
         >
-          <Link href={session.data ? `/@ravendelarama` : "/"}>
+          <Link
+            href={session.data && data?.username! ? `/@${data?.username}` : "/"}
+          >
             {/\/@[a-z0-9_\.]+/.test(pathname) ? (
               <FaUser className="h-6 w-7" />
             ) : (

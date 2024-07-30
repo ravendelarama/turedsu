@@ -38,6 +38,22 @@ export const authConfig = {
             }
         })
     ],
+    callbacks: {
+        jwt: async ({ token, user }) => {
+            if (user) {
+                token.id = user.id!;
+            }
+
+            return token;
+        },
+        session: async ({ token, session }) => {
+            if (token) {
+                session.user.id = token.id;
+            }
+
+            return session;
+        }
+    },
     session: {
         strategy: "jwt",
         maxAge: 60 * 60 * 24 * 7,

@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { LoaderCircle } from "lucide-react";
-import { redirect } from "next/navigation";
 import { Fragment } from "react";
 
 export default async function Home() {

@@ -7,11 +7,13 @@ import TextParser from "../text-parser";
 import numeral from "numeral";
 import { CircleEllipsis, Dot, Loader, LoaderCircle } from "lucide-react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getUserThreadPosts } from "@/actions/post";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
+import { followUser, isFollowed } from "@/actions/user";
+import { toast } from "sonner";
 
 export function UserInfoSection({ user }: { user: PostUser }) {
   const { data: session } = useSession();
@@ -129,8 +131,8 @@ export function UserThreads({ user }: { user: PostUser }) {
     queryFn: async () => {
       return await getUserThreadPosts(user.id!);
     },
-    refetchInterval: 1000 * 30,
-    staleTime: 30 * 1000,
+    refetchInterval: 1000 * 10,
+    staleTime: 10 * 1000,
   });
 
   return (
@@ -158,9 +160,32 @@ export function UserEditButton({ user }: { user: PostUser }) {
 }
 
 export function UserProfileButtonGroups({ user }: { user: PostUser }) {
+  const { data } = useQuery({
+    queryKey: ["followed", user.id],
+    queryFn: async () => {
+      return await isFollowed(user.id);
+    },
+    refetchInterval: 3 * 1000,
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      return await followUser(user.id);
+    },
+  });
+
   return (
     <div className="py-2 w-full flex justify-between items-center gap-4">
-      <Button className="grow">Follow</Button>
+      <Button
+        variant={data ? "outline" : "default"}
+        className="grow"
+        onClick={(e) => {
+          e.stopPropagation();
+          mutation.mutate();
+        }}
+      >
+        {data ? "Following" : "Follow"}
+      </Button>
       <Button variant={"outline"} className="grow">
         Mention
       </Button>
