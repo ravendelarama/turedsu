@@ -392,7 +392,7 @@ function PostCancelModal({
     <>
       <div
         className={cn(
-          "p-2 select-none rounded-xl absolute w-64 bg-background border scale-0 transition-all duration-[50ms] ease-in",
+          "p-2 select-none rounded-xl absolute w-64 bg-background border scale-0 transition-all duration-500ms ease-in",
           cancel && "scale-100"
         )}
       >
