@@ -4,9 +4,6 @@ import google from "next-auth/providers/google"
 import { db } from "./db";
 import github from "next-auth/providers/github";
 import credentials from "next-auth/providers/credentials";
-import bcryptjs from "bcryptjs";
-import { signInSchema } from "./zod";
-import { z } from "zod";
 
 export const authConfig = {
     adapter: PrismaAdapter(db),
@@ -31,7 +28,7 @@ export const authConfig = {
                 return {
                     email: profile.email,
                     name: profile.name,
-                    username: profile.login,
+                    username: profile.twitter_username,
                     image: profile.avatar_url,
                     bio: profile.bio,
                 }
