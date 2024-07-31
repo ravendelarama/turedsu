@@ -154,11 +154,7 @@ export function PostItemHoverCard({
         >
           <Link
             href={`/@${user?.username!}`}
-            className={cn(
-              "text-sm",
-              type == "header" && "md:text-base",
-              type != "header" && "text-sky-500"
-            )}
+            className={cn("text-sm", type != "header" && "text-sky-500")}
           >
             {type != "header" && "@"}
             {user?.username!}
@@ -482,7 +478,7 @@ export function PostHeaderSection({
         {user?.verified! && <MdVerified className="text-sky-500" />}
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger className="text-sm md:text-base text-zinc-500 ml-2">
+            <TooltipTrigger className="text-sm text-zinc-500 ml-2">
               {moment(createdAt).fromNow()}
             </TooltipTrigger>
             <TooltipContent>

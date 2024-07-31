@@ -24,7 +24,7 @@ export default function FooterNav() {
   const router = useRouter();
 
   return (
-    <div className="w-full h-fit bg-background/80 py-2 z-20 flex justify-evenly items-center sticky bottom-0 backdrop-blur lg:hidden">
+    <div className="w-full h-fit bg-background/80 py-2 z-20 flex justify-evenly items-center sticky bottom-0 backdrop-blur md:hidden">
       <Button
         variant={null}
         size={null}

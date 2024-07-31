@@ -41,7 +41,7 @@ export default function HeaderLayoutPage() {
   const router = useRouter();
 
   return (
-    <div className="z-10 flex h-fit w-full px-10 py-2 lg:px-24 lg:h-[5rem] bg-background/80 backdrop-blur sticky top-0 text-foreground justify-between items-center">
+    <div className="z-10 flex h-fit w-full px-10 py-2 md:px-24 md:h-[5rem] bg-background/80 backdrop-blur sticky top-0 text-foreground justify-between items-center">
       <Button variant={null} size={null} className="grow lg:grow-0" asChild>
         <Link href="/">
           <AtSign className="h-8 w-8 rotate-180" />

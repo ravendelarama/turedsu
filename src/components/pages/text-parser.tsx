@@ -53,7 +53,7 @@ export default function TextParser({ text }: { text: string }) {
             key={index}
             variant={"link"}
             size={null}
-            className="text-sm inline-block"
+            className="text-sm inline-block text-ellipsis overflow-hidden w-36"
             asChild
             onClick={(e) => {
               e.stopPropagation();
