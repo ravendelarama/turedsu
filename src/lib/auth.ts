@@ -28,7 +28,7 @@ export const authConfig = {
                 return {
                     email: profile.email,
                     name: profile.name,
-                    username: profile.twitter_username,
+                    username: profile.login ?? profile.name?.split(' ').join('').toLowerCase(),
                     image: profile.avatar_url,
                     bio: profile.bio,
                 }
