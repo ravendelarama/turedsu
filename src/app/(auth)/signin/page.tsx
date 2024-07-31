@@ -1,6 +1,8 @@
 import { SignInForm } from "@/components/pages/login";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { auth, signIn } from "@/lib/auth";
+import { FaInstagramSquare } from "react-icons/fa";
 import { redirect } from "next/navigation";
 
 export default async function SignInPage() {
@@ -23,7 +25,15 @@ export default async function SignInPage() {
             await signIn("instagram");
           }}
         >
-          <button type="submit">Continue with instagram</button>
+          <Button
+            type="submit"
+            variant={"outline"}
+            size={"lg"}
+            className="border rounded-lg py-2 flex justify-center items-center text-lg font-semibold font-sans"
+          >
+            <FaInstagramSquare className="h-7 w-7" />
+            Continue with Instagram
+          </Button>
         </form>
       </div>
     </div>
