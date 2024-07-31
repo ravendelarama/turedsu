@@ -262,6 +262,7 @@ export async function likePost(id: string) {
 
     const liked = await db.like.findFirst({
         where: {
+            userId: session?.user?.id,
             postId: id
         },
         include: {

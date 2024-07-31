@@ -216,7 +216,6 @@ export function PostActionButton({
   const { data: liked, isLoading } = useQuery({
     queryKey: ["liked", id],
     queryFn: async () => await isLikedPost(id),
-    refetchInterval: 30 * 1000,
   });
 
   const { data: session } = useSession();
@@ -245,7 +244,7 @@ export function PostActionButton({
 
       queryClient.setQueryData(["liked", id], (old: boolean) => !old);
 
-      setLikes(!prev ? "like" : "dislike");
+      setLikes(!liked ? "like" : "dislike");
 
       return { prev, newStat };
     },
@@ -253,8 +252,11 @@ export function PostActionButton({
       return await likePost(id);
     },
     onSettled: async () => {
-      return await queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["liked", id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["post", id, "counts"],
       });
     },
     onError: (err, _, context) => {
@@ -270,7 +272,12 @@ export function PostActionButton({
       onClick={async (e) => {
         e.stopPropagation();
 
-        if (type == "like" && session?.user) {
+        if (
+          !isPending &&
+          !mutation.isPending &&
+          type == "like" &&
+          session?.user
+        ) {
           startTransition(() => {
             mutation.mutate();
           });
@@ -292,7 +299,7 @@ export function PostActionButton({
           type == "like" && session?.user && liked && "text-red-600"
         )}
       >
-        {type == "like" ? likes : count}
+        {type == "like" ? !isPending && likes : count}
       </p>
     </div>
   );
@@ -304,7 +311,7 @@ export function PostActionSection({ id }: { id: string }) {
     queryFn: async () => {
       return await getPostCounts(id);
     },
-    refetchInterval: 30 * 1000,
+    refetchInterval: 10 * 1000,
   });
 
   const reposts = data?._count?.reposts! + data?._count?.quotedBy! || 0;
@@ -375,6 +382,9 @@ export function PostOptionSection({ id }: { id: string }) {
       return await deletePost(id);
     },
   });
+
+  const { data: session } = useSession();
+
   return (
     <DropdownMenu>
       <TooltipProvider>
@@ -387,7 +397,6 @@ export function PostOptionSection({ id }: { id: string }) {
               <div
                 onClick={(e) => {
                   e.stopPropagation();
-                  mutation.mutate();
                 }}
               >
                 <Ellipsis className="w-5 h-5 text-zinc-600" />
@@ -400,68 +409,73 @@ export function PostOptionSection({ id }: { id: string }) {
         </Tooltip>
       </TooltipProvider>
       <DropdownMenuContent className="p-2 rounded-xl w-64">
-        <DropdownMenuItem className="rounded-xl p-3" asChild>
-          <Button
-            variant={null}
-            size={null}
-            className="flex justify-between items-center w-full focus-visible:ring-0"
-          >
-            Save <Bookmark className="w-6 h-6" />
-          </Button>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-xl p-3" asChild>
-          <Button
-            variant={null}
-            size={null}
-            className="flex justify-between items-center w-full focus-visible:ring-0"
-          >
-            Pin to profile
-            {false ? (
-              <PinOff className="w-6 h-6" />
-            ) : (
-              <Pin className="w-6 h-6" />
-            )}
-          </Button>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-xl p-3" asChild>
-          <Button
-            variant={null}
-            size={null}
-            className="flex justify-between items-center w-full focus-visible:ring-0"
-          >
-            Hide like and share
-            {false ? (
-              <HeartOff className="w-6 h-6" />
-            ) : (
-              <Heart className="w-6 h-6" />
-            )}
-          </Button>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-xl p-3 relative" asChild>
-          <div
-            className="flex justify-between items-center w-full focus-visible:ring-0"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            Who can reply and quote
-            <ChevronRight className="w-6 h-6" />
-          </div>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="rounded-xl p-3" asChild>
-          <Button
-            variant={null}
-            size={null}
-            className="flex justify-between items-center w-full focus-visible:ring-0 text-destructive focus:text-red-500"
-            onClick={async (e) => {
-              e.stopPropagation();
-            }}
-          >
-            Delete
-            <Trash className="w-6 h-6" />
-          </Button>
-        </DropdownMenuItem>
+        {session && session?.user && (
+          <>
+            <DropdownMenuItem className="rounded-xl p-3" asChild>
+              <Button
+                variant={null}
+                size={null}
+                className="flex justify-between items-center w-full focus-visible:ring-0"
+              >
+                Save <Bookmark className="w-6 h-6" />
+              </Button>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="rounded-xl p-3" asChild>
+              <Button
+                variant={null}
+                size={null}
+                className="flex justify-between items-center w-full focus-visible:ring-0"
+              >
+                Pin to profile
+                {false ? (
+                  <PinOff className="w-6 h-6" />
+                ) : (
+                  <Pin className="w-6 h-6" />
+                )}
+              </Button>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="rounded-xl p-3" asChild>
+              <Button
+                variant={null}
+                size={null}
+                className="flex justify-between items-center w-full focus-visible:ring-0"
+              >
+                Hide like and share
+                {false ? (
+                  <HeartOff className="w-6 h-6" />
+                ) : (
+                  <Heart className="w-6 h-6" />
+                )}
+              </Button>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="rounded-xl p-3 relative" asChild>
+              <div
+                className="flex justify-between items-center w-full focus-visible:ring-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                Who can reply and quote
+                <ChevronRight className="w-6 h-6" />
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="rounded-xl p-3" asChild>
+              <Button
+                variant={null}
+                size={null}
+                className="flex justify-between items-center w-full focus-visible:ring-0 text-destructive focus:text-red-500"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  mutation.mutate();
+                }}
+              >
+                Delete
+                <Trash className="w-6 h-6" />
+              </Button>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

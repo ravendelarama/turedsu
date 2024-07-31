@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { getPostUserByID } from "@/actions/user";
+import AuthButtonGroup from "../pages/auth/auth-button";
 
 export default function HeaderLayoutPage() {
   const session = useSession();
@@ -123,38 +124,7 @@ export default function HeaderLayoutPage() {
           </Link>
         </Button>
       </div>
-      {session?.data?.user ? (
-        <form action={logout}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={null}
-                  size={"lg"}
-                  className="font-semibold hidden md:block"
-                  type="submit"
-                  onClick={(e) => {
-                    toast.info("Signed out");
-                  }}
-                >
-                  <LogOut className="h-7 w-7 text-zinc-500" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Log out</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </form>
-      ) : (
-        <Button
-          variant={"default"}
-          className="hidden font-semibold md:block"
-          asChild
-        >
-          <Link href="/signin">Log in</Link>
-        </Button>
-      )}
+      <AuthButtonGroup />
     </div>
   );
 }
