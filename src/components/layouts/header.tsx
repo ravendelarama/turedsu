@@ -14,6 +14,7 @@ import {
 import { GoHome, GoHomeFill } from "react-icons/go";
 import { FaRegUser, FaUser } from "react-icons/fa6";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { BsThreads } from "react-icons/bs";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
@@ -43,8 +44,8 @@ export default function HeaderLayoutPage() {
   return (
     <div className="z-10 flex h-fit w-full px-10 py-2 md:px-24 md:h-[5rem] bg-background/80 backdrop-blur sticky top-0 text-foreground justify-between items-center">
       <Button variant={null} size={null} className="grow lg:grow-0" asChild>
-        <Link href="/">
-          <AtSign className="h-8 w-8 rotate-180" />
+        <Link href="/" className="bg-clip-text bg-rose-500">
+          <BsThreads className=" h-8 w-8 bg-transparent" />
         </Link>
       </Button>
       <div className="w-1/3 h-full hidden justify-center items-center gap-4 relative left-8 lg:flex">

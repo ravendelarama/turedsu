@@ -1,6 +1,6 @@
 import { SignInForm } from "@/components/pages/login";
 import { Separator } from "@/components/ui/separator";
-import { auth } from "@/lib/auth";
+import { auth, signIn } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function SignInPage() {
@@ -17,6 +17,14 @@ export default async function SignInPage() {
           Log in with your email and password
         </p>
         <SignInForm />
+        <form
+          action={async () => {
+            "use server";
+            await signIn("instagram");
+          }}
+        >
+          <button type="submit">Continue with instagram</button>
+        </form>
       </div>
     </div>
   );

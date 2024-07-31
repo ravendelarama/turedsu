@@ -106,6 +106,7 @@ function PostCreateForm({
     values.threads.map((item, index) => {
       formData.append(`threads.captions`, item.caption!);
       item.medias.map((m) => {
+        console.log(m);
         formData.append(`threads.${index}.medias`, m, m.name);
       });
     });

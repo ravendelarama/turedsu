@@ -370,6 +370,11 @@ export function PostCaption({ caption }: { caption: string }) {
 }
 
 export function PostOptionSection({ id }: { id: string }) {
+  const mutation = useMutation({
+    mutationFn: async () => {
+      return await deletePost(id);
+    },
+  });
   return (
     <DropdownMenu>
       <TooltipProvider>
@@ -382,6 +387,7 @@ export function PostOptionSection({ id }: { id: string }) {
               <div
                 onClick={(e) => {
                   e.stopPropagation();
+                  mutation.mutate();
                 }}
               >
                 <Ellipsis className="w-5 h-5 text-zinc-600" />
@@ -450,7 +456,6 @@ export function PostOptionSection({ id }: { id: string }) {
             className="flex justify-between items-center w-full focus-visible:ring-0 text-destructive focus:text-red-500"
             onClick={async (e) => {
               e.stopPropagation();
-              await deletePost(id);
             }}
           >
             Delete

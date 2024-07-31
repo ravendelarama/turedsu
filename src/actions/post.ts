@@ -74,6 +74,9 @@ export async function createPost(form: FormData) {
 
 export async function getPosts({ pageParams }: { pageParams: number; }) {
     const posts = await db.post.findMany({
+        orderBy: {
+            createdAt: 'desc'
+        },
         where: {
             parentId: null
         },
