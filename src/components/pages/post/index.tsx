@@ -220,6 +220,7 @@ export function PostActionButton({
   const { data: liked, isLoading } = useQuery({
     queryKey: ["liked", id],
     queryFn: async () => await isLikedPost(id),
+    refetchInterval: 30 * 1000,
   });
 
   const { data: session } = useSession();
@@ -307,8 +308,7 @@ export function PostActionSection({ id }: { id: string }) {
     queryFn: async () => {
       return await getPostCounts(id);
     },
-    refetchInterval: 5 * 1000,
-    staleTime: 0,
+    refetchInterval: 30 * 1000,
   });
 
   const reposts = data?._count?.reposts! + data?._count?.quotedBy! || 0;
