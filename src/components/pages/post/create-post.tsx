@@ -45,6 +45,7 @@ import { Input } from "@/components/ui/input";
 import { PostActionButton } from ".";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { getTagQuery } from "@/actions/tag";
 
 export const postFormSchema = z.object({
   threads: z.array(
@@ -60,8 +61,21 @@ function getUserSuggestions(query, callback) {
   getUserQuery(String(query)).then((res) => {
     let results = res.map((result) => {
       return {
-        id: result.username!,
+        id: result.followedByIDs.length!,
         display: result?.username!,
+      };
+    });
+    callback(results);
+  });
+}
+
+// @ts-ignore
+function getTagSuggestions(query, callback) {
+  getTagQuery(String(query)).then((res) => {
+    let results = res.map((result) => {
+      return {
+        id: result.postIDs.length!,
+        display: result?.name!,
       };
     });
     callback(results);
@@ -169,6 +183,9 @@ function PostCreateForm({
                                 <span className="font-semibold text-sm">
                                   @{suggestion.display}
                                 </span>
+                                <span className="text-sm text-zinc-500 font-normal">
+                                  {suggestion.id} followers
+                                </span>
                               </div>
                             </div>
                           );
@@ -176,13 +193,8 @@ function PostCreateForm({
                       />
                       <Mention
                         trigger={"#"}
-                        data={[
-                          {
-                            id: "tagId",
-                            display: "threads",
-                          },
-                        ]}
-                        className="bg-blue-900"
+                        data={getTagSuggestions}
+                        className="bg-blue-900 overflow-y-auto z-40"
                         renderSuggestion={(
                           entry,
                           search,
@@ -200,10 +212,10 @@ function PostCreateForm({
                             >
                               <div className="flex flex-col">
                                 <span className="font-semibold text-sm">
-                                  @{entry.display}
+                                  #{entry.display}
                                 </span>
                                 <span className="text-sm text-zinc-500 font-normal">
-                                  {entry.id}
+                                  {entry.id} posts
                                 </span>
                               </div>
                             </div>
@@ -445,7 +457,7 @@ function PostCreateFormWrapper({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-background w-[36rem] min-h-[12rem] max-h-96 overflow-y-auto scale-0 transition-all ease-in",
+        "rounded-xl border bg-background w-[36rem] min-h-[12rem] overflow-y-auto h-fit max-h-96 scale-0 transition-all ease-in",
         !cancel && "scale-1"
       )}
       onClick={(e) => {

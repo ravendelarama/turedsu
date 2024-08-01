@@ -19,6 +19,7 @@ model User {
   verified      Boolean   @default(false)
   bio           String?
   link          String?
+  private       Boolean   @default(false)
   accounts      Account[]
   sessions      Session[]
 
@@ -30,8 +31,10 @@ model User {
   followedByIDs String[] @db.ObjectId
   followingIDs  String[] @db.ObjectId
 
-  followedBy User[] @relation("follows", fields: [followedByIDs], references: [id])
-  following  User[] @relation("follows", fields: [followingIDs], references: [id])
+  followedBy User[]   @relation("follows", fields: [followedByIDs], references: [id])
+  following  User[]   @relation("follows", fields: [followingIDs], references: [id])
+  reposts    Repost[]
+  views      View[]
 }
 
 model Account {
@@ -77,24 +80,53 @@ model VerificationToken {
 }
 
 model Post {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  caption  String
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  caption    String
+  hideCounts Boolean @default(false)
+
   parentId String? @db.ObjectId
   quoteId  String? @db.ObjectId
   userId   String  @db.ObjectId
   repostId String? @db.ObjectId
-  medias   Media[]
-  likes    Like[]
-  parent   Post?   @relation("reply", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies  Post[]  @relation("reply")
-  reposted Post?   @relation("repost", fields: [repostId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  reposts  Post[]  @relation("repost")
-  quote    Post?   @relation("quote", fields: [quoteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  quotedBy Post[]  @relation("quote")
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pollId   String? @db.ObjectId
+
+  medias  Media[]
+  reposts Repost[]
+  likes   Like[]
+  views   View[]
+  tagIDs  String[] @db.ObjectId
+
+  tags Tag[] @relation(references: [id], fields: [tagIDs])
+
+  parent  Post?  @relation("reply", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies Post[] @relation("reply")
+
+  quote    Post?  @relation("quote", fields: [quoteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quotedBy Post[] @relation("quote")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Repost {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  postId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+  post Post @relation(references: [id], fields: [postId], onDelete: Cascade)
+}
+
+model Tag {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  createdAt DateTime @default(now())
+  postIDs   String[] @db.ObjectId
+
+  posts Post[] @relation(references: [id], fields: [postIDs])
 }
 
 model Like {
@@ -116,6 +148,16 @@ model Media {
   postId      String @db.ObjectId
 
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model View {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  postId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  user User @relation(references: [id], fields: [userId], onDelete: NoAction)
+  post Post @relation(references: [id], fields: [postId], onDelete: Cascade)
 }
 
 enum RoleType {

@@ -1,3 +1,4 @@
+import SearchResults from "@/components/pages/search/results";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -8,5 +9,9 @@ export default async function SearchPage() {
     return redirect("/");
   }
 
-  return <div>Search Page (Coming soon)</div>;
+  return (
+    <div className="h-full flex flex-col justify-center items-center">
+      <SearchResults />
+    </div>
+  );
 }

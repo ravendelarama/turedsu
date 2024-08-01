@@ -4,6 +4,7 @@ import { postFormSchema } from "@/components/pages/post/create-post";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fileUpload, utapi } from "@/lib/uploadthing";
+import { tagExtractor, tagFilter, tagParser } from "@/lib/utils";
 import { Post } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
@@ -30,6 +31,53 @@ export async function createPost(form: FormData) {
                 parentId: i > 0 ? newThreads[i - 1].id: i == 0 && replyId ? replyId as string: null
             }
         });
+
+        const tags = tagExtractor(newPost.caption);
+
+        if (tags && tags.length > 0) {
+            await db.post.update({
+                where: {
+                    id: newPost.id
+                },
+                data: {
+                    caption: tagParser(newPost.caption),
+                    tags: {
+                        create: [
+                            ...tags
+                        ]
+                    }
+                }
+            });
+        }
+
+        const filteredtags = tagFilter(newPost.caption);
+        if (filteredtags) {
+            filteredtags?.map(async (item) => {
+                if (item) {
+                    const tagId = await db.tag.findFirst({
+                        where: {
+                            name: item
+                        },
+                        select: {
+                            id: true
+                        }
+                    });
+
+                    await db.tag.update({
+                        where: {
+                            id: tagId?.id!
+                        },
+                        data: {
+                            posts: {
+                                connect: {
+                                    id: newPost?.id
+                                }
+                            }
+                        }
+                    })
+                }
+            })
+        }
 
         newThreads.push(newPost);
         
@@ -90,6 +138,7 @@ export async function getPosts({ pageParams }: { pageParams: number; }) {
                     name: true,
                     image: true,
                     email: true,
+                    link: true,
                     id: true,
                     verified: true,
                     bio: true,
@@ -105,7 +154,8 @@ export async function getPosts({ pageParams }: { pageParams: number; }) {
                     likes: true,
                     replies: true,
                     reposts: true,
-                    quotedBy: true
+                    quotedBy: true,
+                    views: true,
                 }
             }
         }
@@ -137,13 +187,39 @@ export async function deletePost(id: string) {
         }
     });
 
+    // Disconnect relations of tags from posts
+    
+
     // @ts-ignore
     let childKeys = [];
     
     if (children.length > 0) {
-        childKeys = children.map((item) => {
+        try {
+            await db.$transaction(async (tx) => {
+                children.map(async (child) => {
+                    await tx?.post.update({
+                        where: {
+                            id: child.id
+                        },
+                        data: {
+                            tags: {
+                                set: []
+                            }
+                        }
+                    });
+                });
+            });
+        } catch {
+            return {
+                success: false,
+                message: "Server Error"
+            }
+        }
+
+        childKeys = children.map(async (item) => {
             return item.medias.map(sub => sub.key);
         });
+
 
         await db.post.deleteMany({
             where: {
@@ -152,6 +228,17 @@ export async function deletePost(id: string) {
         });
     }
 
+    await db?.post.update({
+        where: {
+            id
+        },
+        data: {
+            tags: {
+                set: []
+            }
+        }
+    });
+    
     const del = await db.post.delete({
         where: {
             id
@@ -191,7 +278,8 @@ export async function getPostCounts(id?: string) {
                     likes: true,
                     replies: true,
                     reposts: true,
-                    quotedBy: true
+                    quotedBy: true,
+                    views: true,
                 }
             }
         }
@@ -214,6 +302,7 @@ export async function getPostByID(id: string) {
                     name: true,
                     email: true,
                     image: true,
+                    link: true,
                     id: true,
                     verified: true,
                     bio: true,
@@ -229,7 +318,8 @@ export async function getPostByID(id: string) {
                     likes: true,
                     replies: true,
                     reposts: true,
-                    quotedBy: true
+                    quotedBy: true,
+                    views: true,
                 }
             }
         }
@@ -238,11 +328,56 @@ export async function getPostByID(id: string) {
     return post;
 }
 
-export async function getPostsByTag(tag: string) {
+export async function getPostsByTag(tag?: string | null) {
+    console.log(tag)
+    const data = await db.tag.findFirst({
+        where: {
+            name: tag ?? ""
+        }
+    });
+
+    console.log(data?.postIDs);
+
     const results = await db.post.findMany({
         where: {
-            caption: {
-                contains: `#${tag}`
+            tagIDs: {
+                has: data?.id ?? ""
+            }
+        },
+        orderBy: [
+            {
+                likes: {
+                    _count: 'asc'
+                }
+            },
+        ],
+        include: {
+            medias: true,
+            user: {
+                select: {
+                    username: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    link: true,
+                    id: true,
+                    verified: true,
+                    bio: true,
+                    _count: {
+                        select: {
+                            followedBy: true
+                        }
+                    }
+                }
+            },
+            _count: {
+                select: {
+                    likes: true,
+                    replies: true,
+                    reposts: true,
+                    quotedBy: true,
+                    views: true,
+                }
             }
         }
     });
@@ -356,7 +491,8 @@ export async function getReplies(id: string) {
                     likes: true,
                     replies: true,
                     reposts: true,
-                    quotedBy: true
+                    quotedBy: true,
+                    views: true,
                 }
             }
         }
@@ -379,6 +515,7 @@ export async function getUserThreadPosts(id: string) {
                     email: true,
                     name: true,
                     image: true,
+                    link: true,
                     id: true,
                     verified: true,
                     bio: true,
@@ -394,7 +531,8 @@ export async function getUserThreadPosts(id: string) {
                     likes: true,
                     replies: true,
                     reposts: true,
-                    quotedBy: true
+                    quotedBy: true,
+                    views: true,
                 }
             }
         },
@@ -404,4 +542,28 @@ export async function getUserThreadPosts(id: string) {
     });
 
     return threads;
+}
+
+export async function addView(postId: string, userId: string) {
+    const seen = await db.view.count({
+        where: {
+            postId,
+            userId
+        }
+    });
+
+    if (seen == 0) {
+        await db.post.update({
+            where: {
+                id: postId
+            },
+            data: {
+                views: {
+                    create: {
+                        userId: userId
+                    }
+                }
+            }
+        });
+    }
 }

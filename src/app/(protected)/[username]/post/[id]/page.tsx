@@ -1,4 +1,4 @@
-import { getPostByID, getReplies } from "@/actions/post";
+import { addView, getPostByID, getReplies } from "@/actions/post";
 import { Post } from "@/components/pages/post";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
@@ -10,7 +10,13 @@ export default async function PostPage({
 }: {
   params: { id: string };
 }) {
+  const session = await auth();
   const post = await getPostByID(id);
+
+  if (session && post) {
+    await addView(post?.id!, session.user?.id!);
+  }
+
   const replies = await getReplies(id);
 
   return (

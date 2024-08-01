@@ -42,7 +42,7 @@ import {
   RefreshCw,
   Trash,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator";
 import TextParser from "../text-parser";
 import {
   deletePost,
@@ -50,60 +50,16 @@ import {
   isLikedPost,
   likePost,
 } from "@/actions/post";
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { followUser, getPostUserByID, isFollowed } from "@/actions/user";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { followUser, isFollowed } from "@/actions/user";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { PostFormModal } from "./create-post";
 import numeral from "numeral";
-import { toast } from "sonner";
 import { useOptimistic, useTransition } from "react";
-
-export type PostUser = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  image: string | null;
-  username: string | null;
-  bio: string | null;
-  verified: boolean;
-  _count: {
-    followedBy: number;
-  };
-};
-
-export type PostItemType = {
-  id: string;
-  caption: string;
-  parentId: string | null;
-  repostId: string | null;
-  quoteId: string | null;
-  userId: string;
-  user: PostUser;
-  createdAt: Date;
-  medias: {
-    id: string;
-    key: string;
-    name: string;
-    source: string;
-    type: string;
-    aspectRatio: string;
-    postId: string;
-  }[];
-  _count: {
-    likes: number;
-    replies: number;
-    reposts: number;
-    quotedBy: number;
-  };
-};
+import { PostItemType, PostUser } from "@/lib/thread-types";
 
 // Post Item Section
 export function PostItemHoverCard({
@@ -306,6 +262,7 @@ export function PostActionButton({
 }
 
 export function PostActionSection({ id }: { id: string }) {
+  const pathname = usePathname();
   const { data } = useQuery({
     queryKey: ["post", id, "counts"],
     queryFn: async () => {
@@ -364,6 +321,12 @@ export function PostActionSection({ id }: { id: string }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {pathname.includes("post") && pathname.includes(id) && (
+        <div className="w-full h-full flex justify-end items-center text-zinc-600 text-xs">
+          {numeral(data?._count.views).format("0a")} view
+          {data && data?._count.views != 1 && "s"}
+        </div>
+      )}
     </div>
   );
 }
@@ -376,7 +339,13 @@ export function PostCaption({ caption }: { caption: string }) {
   );
 }
 
-export function PostOptionSection({ id }: { id: string }) {
+export function PostOptionSection({
+  id,
+  userId,
+}: {
+  userId: string;
+  id: string;
+}) {
   const mutation = useMutation({
     mutationFn: async () => {
       return await deletePost(id);
@@ -409,7 +378,6 @@ export function PostOptionSection({ id }: { id: string }) {
         </Tooltip>
       </TooltipProvider>
       <DropdownMenuContent className="p-2 rounded-xl w-64">
-        <DropdownMenuSeparator />
         {session && session?.user && (
           <>
             <DropdownMenuItem className="rounded-xl p-3" asChild>
@@ -421,59 +389,64 @@ export function PostOptionSection({ id }: { id: string }) {
                 Save <Bookmark className="w-6 h-6" />
               </Button>
             </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl p-3" asChild>
-              <Button
-                variant={null}
-                size={null}
-                className="flex justify-between items-center w-full focus-visible:ring-0"
-              >
-                Pin to profile
-                {false ? (
-                  <PinOff className="w-6 h-6" />
-                ) : (
-                  <Pin className="w-6 h-6" />
-                )}
-              </Button>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl p-3" asChild>
-              <Button
-                variant={null}
-                size={null}
-                className="flex justify-between items-center w-full focus-visible:ring-0"
-              >
-                Hide like and share
-                {false ? (
-                  <HeartOff className="w-6 h-6" />
-                ) : (
-                  <Heart className="w-6 h-6" />
-                )}
-              </Button>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl p-3 relative" asChild>
-              <div
-                className="flex justify-between items-center w-full focus-visible:ring-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                Who can reply and quote
-                <ChevronRight className="w-6 h-6" />
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl p-3" asChild>
-              <Button
-                variant={null}
-                size={null}
-                className="flex justify-between items-center w-full focus-visible:ring-0 text-destructive focus:text-red-500"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  mutation.mutate();
-                }}
-              >
-                Delete
-                <Trash className="w-6 h-6" />
-              </Button>
-            </DropdownMenuItem>
+            {session.user.id == userId && (
+              <>
+                <DropdownMenuItem className="rounded-xl p-3" asChild>
+                  <Button
+                    variant={null}
+                    size={null}
+                    className="flex justify-between items-center w-full focus-visible:ring-0"
+                  >
+                    Pin to profile
+                    {false ? (
+                      <PinOff className="w-6 h-6" />
+                    ) : (
+                      <Pin className="w-6 h-6" />
+                    )}
+                  </Button>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-xl p-3" asChild>
+                  <Button
+                    variant={null}
+                    size={null}
+                    className="flex justify-between items-center w-full focus-visible:ring-0"
+                  >
+                    Hide like and share
+                    {false ? (
+                      <HeartOff className="w-6 h-6" />
+                    ) : (
+                      <Heart className="w-6 h-6" />
+                    )}
+                  </Button>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-xl p-3 relative" asChild>
+                  <div
+                    className="flex justify-between items-center w-full focus-visible:ring-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    Who can reply and quote
+                    <ChevronRight className="w-6 h-6" />
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="rounded-xl p-3" asChild>
+                  <Button
+                    variant={null}
+                    size={null}
+                    className="flex justify-between items-center w-full focus-visible:ring-0 text-destructive focus:text-red-500"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      mutation.mutate();
+                    }}
+                  >
+                    Delete
+                    <Trash className="w-6 h-6" />
+                  </Button>
+                </DropdownMenuItem>
+              </>
+            )}
           </>
         )}
       </DropdownMenuContent>
@@ -506,7 +479,7 @@ export function PostHeaderSection({
           </Tooltip>
         </TooltipProvider>
       </div>
-      <PostOptionSection id={id} />
+      <PostOptionSection id={id} userId={user.id} />
     </div>
   );
 }

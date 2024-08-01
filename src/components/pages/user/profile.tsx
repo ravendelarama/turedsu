@@ -1,7 +1,5 @@
 "use client";
 
-import { Post, PostUser } from "../post";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TextParser from "../text-parser";
 import numeral from "numeral";
@@ -15,6 +13,9 @@ import { useSession } from "next-auth/react";
 import { followUser, isFollowed } from "@/actions/user";
 import { toast } from "sonner";
 import { Fragment, useOptimistic, useTransition } from "react";
+import { PostUser } from "@/lib/thread-types";
+import { Post } from "../post";
+import { ProfileFormModal } from "./profile-form";
 
 export function UserInfoSection({ user }: { user: PostUser }) {
   const { data: session } = useSession();
@@ -28,7 +29,7 @@ export function UserInfoSection({ user }: { user: PostUser }) {
       <UserBio bio={user.bio} />
       <UserSocialGroup user={user} />
       {session && session?.user?.email == user?.email ? (
-        <UserEditButton user={user} />
+        <ProfileFormModal user={user} />
       ) : (
         session && <UserProfileButtonGroups user={user} />
       )}
@@ -85,14 +86,18 @@ export function UserSocialGroup({ user }: { user: PostUser }) {
         <p className="text-sm md:text-base text-zinc-600 hover:underline cursor-pointer select-none">
           {numeral(user._count.followedBy).format("0a")} followers
         </p>
-        <Dot className="h-2 w-2 text-zinc-500" />
-        <Link
-          className="text-sm md:text-base text-zinc-600 hover:underline text-ellipsis w-36 lg:w-fit overflow-hidden lg:overflow-auto"
-          href={"https://instagram.com/_rxybxn"}
-          target="_"
-        >
-          {"https://instagram.com/_rxybxn"}
-        </Link>
+        {user.link && (
+          <>
+            <Dot className="h-2 w-2 text-zinc-500" />
+            <Link
+              className="text-sm md:text-base text-zinc-600 hover:underline text-ellipsis w-36 lg:w-fit overflow-hidden lg:overflow-auto"
+              href={user.link}
+              target="_"
+            >
+              {user.link}
+            </Link>
+          </>
+        )}
       </div>
       <div>
         <CircleEllipsis className="h-6 w-6" />
@@ -149,14 +154,6 @@ export function UserThreads({ user }: { user: PostUser }) {
         <LoaderCircle className="h-8 w-8 text-center animate-spin mt-10" />
       )}
     </div>
-  );
-}
-
-export function UserEditButton({ user }: { user: PostUser }) {
-  return (
-    <Button variant={"outline"} className="w-full my-2">
-      Edit Profile
-    </Button>
   );
 }
 

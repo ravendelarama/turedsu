@@ -4,8 +4,6 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
-
-
 export async function getPostUserByID(id: string) {
     const user = await db.user.findFirst({
         where: {
@@ -19,6 +17,7 @@ export async function getPostUserByID(id: string) {
             verified: true,
             bio: true,
             image: true,
+            link: true,
             _count: {
                 select: {
                     followedBy: true,
@@ -48,6 +47,7 @@ export async function getPostUserByUsername(username: string) {
             verified: true,
             bio: true,
             image: true,
+            link: true,
             _count: {
                 select: {
                     followedBy: true,
@@ -95,7 +95,7 @@ export async function followUser(id: string) {
                     id: session?.user?.id
                 }
             }
-        }
+        },
     });
 
     if (!following) {
