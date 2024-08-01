@@ -26,13 +26,13 @@ export default function AuthButtonGroup() {
                 <Button
                   variant={null}
                   size={"lg"}
-                  className="font-semibold hidden md:block"
+                  className="font-semibold"
                   type="submit"
                   onClick={(e) => {
                     toast.info("Signed out");
                   }}
                 >
-                  <LogOut className="h-7 w-7 text-zinc-500" />
+                  <LogOut className="h-5 w-5 text-zinc-500" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -44,7 +44,8 @@ export default function AuthButtonGroup() {
       ) : (
         <Button
           variant={"default"}
-          className="hidden font-semibold md:block"
+          size={"sm"}
+          className="font-semibold"
           asChild
         >
           <Link href="/signin">Log in</Link>
