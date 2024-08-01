@@ -260,10 +260,14 @@ function PostCreateForm({
                         className="hidden"
                         onChange={(e) => {
                           const files = Array.from(e.target?.files!);
+                          const prev = form.getValues(
+                            `threads.${index}.medias`
+                          );
+                          const added = [...prev, ...files];
                           form.setValue(
                             `threads.${index}.medias`,
                             // @ts-ignore
-                            files as File[]
+                            added as File[]
                           );
                         }}
                         onBlur={field.onBlur}
