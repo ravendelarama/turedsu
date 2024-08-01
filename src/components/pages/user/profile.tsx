@@ -97,7 +97,7 @@ export function UserSocialGroup({ user }: { user: PostUser }) {
               href={user.link}
               target="_"
             >
-              {user.link}
+              {user.link.split("https://")[1]}
             </Link>
           </>
         )}
