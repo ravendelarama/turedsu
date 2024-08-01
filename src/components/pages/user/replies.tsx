@@ -13,8 +13,7 @@ export function UserReplies({ user }: { user: PostUser }) {
     queryFn: async () => {
       return await getUserThreadReplies(user.id!);
     },
-    refetchInterval: 1000 * 10,
-    staleTime: 10 * 1000,
+    refetchInterval: 1000 * 30,
   });
 
   return (

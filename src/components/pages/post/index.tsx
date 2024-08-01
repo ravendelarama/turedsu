@@ -32,6 +32,7 @@ import {
   Bookmark,
   ChevronRight,
   Ellipsis,
+  Eye,
   Heart,
   HeartOff,
   LucideRefreshCw,
@@ -269,12 +270,12 @@ export function PostActionSection({ id }: { id: string }) {
     queryFn: async () => {
       return await getPostCounts(id);
     },
-    refetchInterval: 10 * 1000,
+    refetchInterval: 30 * 1000,
   });
 
   const reposts = data?._count?.reposts! + data?._count?.quotedBy! || 0;
   return (
-    <div className="select-none flex justify-start items-center w-full py-2 relative -left-3">
+    <div className="select-none flex justify-start items-center py-4 w-full relative -left-3">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger className="hover:text-red-600">
@@ -323,10 +324,13 @@ export function PostActionSection({ id }: { id: string }) {
         </DropdownMenuContent>
       </DropdownMenu>
       {pathname.includes("post") && pathname.includes(id) && (
-        <div className="w-full h-full flex justify-end items-center text-zinc-600 text-xs">
-          {numeral(data?._count.views).format("0a")} view
-          {data && data?._count.views != 1 && "s"}
-        </div>
+        <>
+          <div className="w-full h-full flex justify-end items-center text-zinc-600 text-xs gap-1">
+            <Eye className="h-4 w-4" />
+            {numeral(data?._count.views).format("0a")}
+            {/* {data && data?._count.views != 1 && "s"} */}
+          </div>
+        </>
       )}
     </div>
   );
@@ -334,7 +338,7 @@ export function PostActionSection({ id }: { id: string }) {
 
 export function PostCaption({ caption }: { caption: string }) {
   return (
-    <div className="text-sm whitespace-pre-line break-all">
+    <div className="text-sm whitespace-pre-line break-words">
       <TextParser text={caption} />
     </div>
   );
@@ -550,13 +554,9 @@ export function Post({
 }) {
   const router = useRouter();
 
-  const pathname = usePathname();
   return (
     <div
-      className={cn(
-        "flex min-w-full min-h-[5rem] h-full cursor-pointer",
-        pathname.includes(post.id) && "py-5"
-      )}
+      className={"flex min-w-full min-h-[5rem] h-full cursor-pointer pt-2"}
       onClick={(e) => {
         e.stopPropagation();
         router.push(`/@${post.user.username}/post/${post.id}`);

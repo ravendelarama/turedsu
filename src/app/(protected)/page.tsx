@@ -11,7 +11,7 @@ export default async function Home() {
 
   return (
     <div className="h-full flex flex-col justify-center items-center">
-      <div className="w-full max-w-[36rem]">
+      <div className="w-full max-w-[38rem]">
         {posts ? (
           posts.map((post, index) => (
             <Fragment key={post.id!}>

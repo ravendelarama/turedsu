@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { utapi } from "@/lib/uploadthing";
 import { revalidatePath } from "next/cache";
 
 export async function getPostUserByID(id: string) {
@@ -156,4 +157,72 @@ export async function isFollowed(id: string) {
     });
 
     return count > 0 ? true : false;
+}
+
+
+export async function updateUserProfile(form: FormData) {
+    const session = await auth();
+
+    const username = form.get("username");
+
+    if (username) {
+        const exist = await db.user.findFirst({
+            where: {
+                username: username as string ?? null
+            }
+        });
+
+        if (exist && exist.id != session?.user?.id) {
+            return {
+                success: false,
+                message: "Username already use"
+            };
+        }
+    }
+
+    const avatar = form.get("avatar");
+
+    if (avatar) {
+        const image = await utapi.uploadFiles([(avatar as File)]);
+
+        const prevImage = await db.user.findFirst({
+            where: {
+                id: session?.user?.id
+            },
+        });
+
+        if (prevImage && prevImage.image && prevImage.image.includes('utfs.io')) {
+            await utapi.deleteFiles([prevImage.image.split('/')[4]]);
+        }
+
+        await db.user.update({
+            where: {
+                id: prevImage?.id
+            },
+            data: {
+                image: image[0].data?.url
+            }
+        });
+    }
+
+    const result = await db.user.update({
+        where: {
+            id: session?.user?.id
+        },
+        data: {
+            username: username as string,
+            name: form.get("name") as string ?? null,
+            bio: form.get("bio") as string ?? null,
+            link: form.get("link") as string ?? null
+        },
+    });
+
+
+    revalidatePath('/');
+    revalidatePath(`/@${result.username}`)
+
+    return {
+        success: true,
+        message: "Updated profile"
+    }
 }

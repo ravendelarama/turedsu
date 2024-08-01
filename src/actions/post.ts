@@ -567,6 +567,9 @@ export async function getUserThreadReplies(id: string) {
                 not: null
             }
         },
+        orderBy: {
+            createdAt: 'desc'
+        },
         include: {
             medias: true,
             parent: {

@@ -1,93 +1,68 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  AlignLeft,
-  Hash,
-  Images,
-  MessageCircle,
-  SquarePlus,
-  X,
-} from "lucide-react";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import * as React from "react";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { MentionsInput, Mention } from "react-mentions";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
-import { createPost, getPostCounts, uploadMediaFiles } from "@/actions/post";
-import { getUserQuery } from "@/actions/user";
-import { Input } from "@/components/ui/input";
-import { PostActionButton } from ".";
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { getTagQuery } from "@/actions/tag";
+import { Mention, MentionsInput } from "react-mentions";
+import { Images, SquarePlus, X } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  getTagSuggestions,
+  getUserSuggestions,
+  postFormSchema,
+} from "./create-post";
+import { createPost } from "@/actions/post";
 
-export const postFormSchema = z.object({
-  threads: z.array(
-    z.object({
-      caption: z.string().optional(),
-      medias: z.array(z.custom<File>()),
-    })
-  ),
-});
+export function CreatePostDrawer() {
+  const [open, setOpen] = React.useState(false);
 
-// @ts-ignore
-export function getUserSuggestions(query, callback) {
-  getUserQuery(String(query)).then((res) => {
-    let results = res.map((result) => {
-      return {
-        id: result.followedByIDs.length!,
-        display: result?.username!,
-      };
-    });
-    callback(results);
-  });
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <Button
+          variant={null}
+          size={null}
+          className="hover:bg-primary-foreground py-2 px-4"
+        >
+          <SquarePlus className="h-6 w-6 md:h-7 md:w-7 text-zinc-600" />
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent className="h-full md:hidden">
+        <ProfileForm className="p-4 overflow-y-auto" />
+        <DrawerFooter className="pt-2">
+          <DrawerClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
 }
 
-// @ts-ignore
-export function getTagSuggestions(query, callback) {
-  getTagQuery(String(query)).then((res) => {
-    let results = res.map((result) => {
-      return {
-        id: result.postIDs.length!,
-        display: result?.name!,
-      };
-    });
-    callback(results);
-  });
-}
-
-// initial post form, to be modified
-function PostCreateForm({
-  setTrigger,
+function ProfileForm({
+  className,
   replyId,
 }: {
-  setTrigger: Dispatch<SetStateAction<boolean>>;
+  className?: string;
   replyId?: string;
 }) {
   const form = useForm<z.infer<typeof postFormSchema>>({
@@ -107,7 +82,6 @@ function PostCreateForm({
     name: "threads",
   });
 
-  // File upload not working on sub threads
   async function onSubmit(values: z.infer<typeof postFormSchema>) {
     const formData = new FormData();
 
@@ -125,16 +99,17 @@ function PostCreateForm({
       });
     });
 
-    await createPost(formData);
+    console.log(formData);
+
+    // await createPost(formData);
     form.reset();
-    setTrigger(false);
   }
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="relative w-full h-full p-2"
+        className={cn("grid items-start gap-4", className)}
       >
         {fields.map((fields, index) => (
           <div key={fields.id}>
@@ -175,10 +150,6 @@ function PostCreateForm({
                                 focused && "bg-zinc-800"
                               )}
                             >
-                              {/* <Avatar>
-                                <AvatarImage src="https://github.com/shadcn.png" />
-                                <AvatarFallback>CN</AvatarFallback>
-                              </Avatar> */}
                               <div className="flex flex-col">
                                 <span className="font-semibold text-sm">
                                   @{suggestion.display}
@@ -300,175 +271,5 @@ function PostCreateForm({
         </div>
       </form>
     </Form>
-  );
-}
-
-export function PostFormModal({
-  replyId,
-  type,
-}: {
-  type: "comment" | "post";
-  replyId?: string;
-}) {
-  const [trigger, setTrigger] = useState<boolean>(false);
-  const [cancel, setCancel] = useState<boolean>(false);
-
-  const { data } = useQuery({
-    queryKey: ["post", replyId, "counts"],
-    queryFn: async () => {
-      return await getPostCounts(replyId);
-    },
-    refetchInterval: 5000,
-    staleTime: 0,
-  });
-
-  return (
-    <div className="relative">
-      <PostModalTrigger
-        setTrigger={setTrigger}
-        type={type}
-        count={data?._count.replies!}
-      />
-      <div
-        className={cn(
-          "bg-background/50 w-full h-screen justify-center items-center z-[60] fixed inset-0 hidden",
-          trigger && "flex"
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          setCancel(!cancel);
-        }}
-      >
-        <PostCancelModal
-          setCancel={setCancel}
-          setTrigger={setTrigger}
-          cancel={cancel}
-        />
-        <PostCreateFormWrapper cancel={cancel}>
-          <PostCreateForm setTrigger={setTrigger} replyId={replyId} />
-        </PostCreateFormWrapper>
-      </div>
-    </div>
-  );
-}
-
-function PostModalTrigger({
-  setTrigger,
-  type,
-  count = 0,
-}: {
-  setTrigger: Dispatch<SetStateAction<boolean>>;
-  type: "comment" | "post";
-  count?: number;
-}) {
-  const { data: session } = useSession();
-
-  return (
-    <Button
-      variant={null}
-      size={null}
-      className={cn(
-        "hover:bg-primary-foreground rounded-full py-2 px-3 scale-1",
-        type == "post" && "h-full py-3 px-6 rounded-md",
-        type == "comment" && "hover:scale-90"
-      )}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (session && session?.user!) {
-          setTrigger(true);
-        }
-      }}
-    >
-      {type == "post" ? (
-        <SquarePlus className="h-6 w-6 md:h-7 md:w-7 text-zinc-600" />
-      ) : (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="gap-1 flex items-center">
-                <MessageCircle className="h-5 w-5 text-primary" />
-
-                <span className="text-xs">{count}</span>
-              </p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Comment</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-    </Button>
-  );
-}
-
-function PostCancelModal({
-  setCancel,
-  setTrigger,
-  cancel,
-}: {
-  setCancel: Dispatch<SetStateAction<boolean>>;
-  setTrigger: Dispatch<SetStateAction<boolean>>;
-  cancel: boolean;
-}) {
-  return (
-    <>
-      <div
-        className={cn(
-          "p-2 select-none rounded-xl absolute w-64 bg-background border scale-0",
-          cancel && "scale-100"
-        )}
-      >
-        <div className="rounded-xl">
-          <Button
-            variant={null}
-            size={"lg"}
-            className="flex justify-center hover:bg-primary-foreground items-center w-full focus-visible:ring-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              setCancel(false);
-              setTrigger(false);
-            }}
-          >
-            Save as draft
-          </Button>
-        </div>
-        <div className="rounded-xl">
-          <Button
-            variant={null}
-            size={"lg"}
-            className="flex justify-center hover:bg-primary-foreground items-center w-full focus-visible:ring-0 text-red-600"
-            onClick={(e) => {
-              e.stopPropagation();
-              setCancel(false);
-              setTrigger(false);
-            }}
-          >
-            Discard
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function PostCreateFormWrapper({
-  children,
-  cancel,
-}: {
-  children: ReactNode;
-  cancel: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border bg-background w-[36rem] min-h-[12rem] overflow-y-auto h-fit max-h-96 scale-0 transition-all ease-in",
-        !cancel && "scale-1"
-      )}
-      onClick={(e) => {
-        e.stopPropagation();
-      }}
-    >
-      {children}
-    </div>
   );
 }

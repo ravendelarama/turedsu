@@ -11,6 +11,7 @@ import Link from "next/link";
 import { PostFormModal } from "../pages/post/create-post";
 import { FaHeart, FaRegHeart, FaRegUser, FaUser } from "react-icons/fa";
 import { cn } from "@/lib/utils";
+import { CreatePostDrawer } from "../pages/post/create-post-mobile";
 
 export default function FooterNav() {
   const session = useSession();
@@ -24,7 +25,7 @@ export default function FooterNav() {
   const router = useRouter();
 
   return (
-    <div className="w-full h-fit bg-background/80 py-2 z-20 flex justify-evenly items-center sticky bottom-0 backdrop-blur md:hidden">
+    <div className="flex justify-evenly items-center py-2 sticky bottom-0 z-30 md:hidden bg-background/80 backdrop-blur">
       <Button
         variant={null}
         size={null}
@@ -51,7 +52,8 @@ export default function FooterNav() {
           />
         </Link>
       </Button>
-      <PostFormModal type="post" />
+      {/* <PostFormModal type="post" /> */}
+      <CreatePostDrawer />
       <Button
         variant={null}
         size={null}
@@ -60,9 +62,9 @@ export default function FooterNav() {
       >
         <Link href="/activity">
           {pathname == "/activity" ? (
-            <FaHeart className="h-5 w-5" />
+            <FaHeart className="h-6 w-6" />
           ) : (
-            <FaRegHeart className="h-5 w-5 text-zinc-600" />
+            <FaRegHeart className="h-6 w-6 text-zinc-600" />
           )}
         </Link>
       </Button>
@@ -76,9 +78,9 @@ export default function FooterNav() {
           href={session.data && data?.username! ? `/@${data?.username}` : "/"}
         >
           {/\/@[a-z0-9_\.]+/.test(pathname) ? (
-            <FaUser className="h-5 w-5" />
+            <FaUser className="h-6 w-6" />
           ) : (
-            <FaRegUser className="h-5 w-5 text-zinc-600" />
+            <FaRegUser className="h-6 w-6 text-zinc-600" />
           )}
         </Link>
       </Button>

@@ -1,5 +1,6 @@
 import { addView, getPostByID, getReplies } from "@/actions/post";
 import { Post } from "@/components/pages/post";
+import { PostActivity } from "@/components/pages/post/post-activity";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -21,11 +22,12 @@ export default async function PostPage({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="w-full max-w-[36rem]">
+      <div className="w-full max-w-[38rem]">
         {post ? (
           <>
             <Post post={post!} withReply={false} />
             <Separator orientation="horizontal" />
+            <PostActivity id={post?.id!} />
             {replies.map((item, index) => (
               <Fragment key={item.id}>
                 <Post post={item} withReply={false} />

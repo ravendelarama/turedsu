@@ -27,6 +27,13 @@ export async function getUserThreadReposts(id: string) {
         },
         select: {
             createdAt: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                }
+            },
             post: {
                 include: {
                     medias: true,

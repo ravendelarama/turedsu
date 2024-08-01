@@ -7,18 +7,17 @@ import { CircleEllipsis, Dot, Loader, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getUserThreadPosts } from "@/actions/post";
+import { VscVerifiedFilled } from "react-icons/vsc";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import { followUser, isFollowed } from "@/actions/user";
-import { toast } from "sonner";
 import { Fragment, useOptimistic, useTransition } from "react";
 import { PostUser } from "@/lib/thread-types";
 import { Post } from "../post";
 import { ProfileFormModal } from "./profile-form";
-import { FaThreads } from "react-icons/fa6";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import LoadingPrompt from "../loading-prompt";
 
 export function UserInfoSection({ user }: { user: PostUser }) {
   const { data: session } = useSession();
@@ -64,36 +63,37 @@ export function UserAvatarGroup({
   avatar: string | null;
 }) {
   return (
-    <Avatar className="h-20 w-20 md:h-24 md:w-24 border cursor-pointer select-none">
-      <AvatarImage src={avatar ?? ""} draggable="false" />
-      <AvatarFallback>
-        {name?.charAt(0).toUpperCase()}
-        {name?.charAt(1).toUpperCase()}
-      </AvatarFallback>
-    </Avatar>
+    <div className="relative bg-background">
+      <Avatar className="h-20 w-20 md:h-24 md:w-24 border cursor-pointer select-none">
+        <AvatarImage src={avatar ?? ""} draggable="false" />
+        <AvatarFallback>
+          {name?.charAt(0).toUpperCase()}
+          {name?.charAt(1).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <div className="bg-background w-fit h-fit rounded-full absolute bottom-1 left-1">
+        <VscVerifiedFilled className="h-5 w-5 text-sky-600 " />
+      </div>
+    </div>
   );
 }
 
 export function UserBio({ bio }: { bio: string | null }) {
-  return (
-    <p className="text-sm whitespace-pre-line break-words">
-      <TextParser text={bio ?? ""} />
-    </p>
-  );
+  return <p className="text-sm whitespace-pre-line break-words">{bio}</p>;
 }
 
 export function UserSocialGroup({ user }: { user: PostUser }) {
   return (
     <div className="flex justify-between py-4">
       <div className="flex items-center gap-2">
-        <p className="text-sm md:text-base text-zinc-600 hover:underline cursor-pointer select-none">
+        <p className="text-sm text-zinc-600 hover:underline cursor-pointer select-none">
           {numeral(user._count.followedBy).format("0a")} followers
         </p>
         {user.link && (
           <>
             <Dot className="h-2 w-2 text-zinc-500" />
             <Link
-              className="text-sm md:text-base text-zinc-600 hover:underline text-ellipsis w-36 lg:w-fit overflow-hidden lg:overflow-auto"
+              className="text-sm text-zinc-600 hover:underline text-ellipsis w-36 lg:w-fit overflow-hidden lg:overflow-auto"
               href={user.link}
               target="_"
             >
@@ -110,23 +110,35 @@ export function UserSocialGroup({ user }: { user: PostUser }) {
 }
 
 export function UserPostNav({ user }: { user: PostUser }) {
+  const pathname = usePathname();
+
   return (
     <div className="flex w-full select-none">
       <Link
         href={`/@${user.username}`}
-        className="py-2 w-full text-center font-semibold text-base border-b border-primary"
+        className={cn(
+          "py-2 w-full text-center font-semibold text-base text-zinc-500 border-b",
+          pathname.endsWith(`/@${user.username}`) &&
+            "border-primary text-primary"
+        )}
       >
         Threads
       </Link>
       <Link
         href={`/@${user.username}/replies`}
-        className="py-2 w-full text-center text-zinc-500 font-semibold text-base border-b"
+        className={cn(
+          "py-2 w-full text-center font-semibold text-zinc-500 text-base border-b",
+          pathname.endsWith("replies") && "border-primary text-primary"
+        )}
       >
         Replies
       </Link>
       <Link
         href={`/@${user.username}/reposts`}
-        className="py-2 w-full text-center text-zinc-500 font-semibold text-base border-b"
+        className={cn(
+          "py-2 w-full text-center text-zinc-500 font-semibold text-base border-b",
+          pathname.endsWith("reposts") && "border-primary text-primary"
+        )}
       >
         Reposts
       </Link>
@@ -140,8 +152,7 @@ export function UserThreads({ user }: { user: PostUser }) {
     queryFn: async () => {
       return await getUserThreadPosts(user.id!);
     },
-    refetchInterval: 1000 * 10,
-    staleTime: 10 * 1000,
+    refetchInterval: 1000 * 30,
   });
 
   return (
