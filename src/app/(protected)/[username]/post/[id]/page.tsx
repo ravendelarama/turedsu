@@ -24,11 +24,11 @@ export default async function PostPage({
       <div className="w-full max-w-[36rem]">
         {post ? (
           <>
-            <Post post={post!} />
+            <Post post={post!} withReply={false} />
             <Separator orientation="horizontal" />
             {replies.map((item, index) => (
               <Fragment key={item.id}>
-                <Post post={item} />
+                <Post post={item} withReply={false} />
                 {replies.length > index + 1 && (
                   <Separator orientation="horizontal" />
                 )}
