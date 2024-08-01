@@ -23,6 +23,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
+  socialIDs String[] @db.ObjectId
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   posts     Post[]
@@ -35,6 +37,7 @@ model User {
   following  User[]   @relation("follows", fields: [followingIDs], references: [id])
   reposts    Repost[]
   views      View[]
+  // Social     Social[]
 }
 
 model Account {
@@ -159,6 +162,24 @@ model View {
   user User @relation(references: [id], fields: [userId], onDelete: NoAction)
   post Post @relation(references: [id], fields: [postId], onDelete: Cascade)
 }
+
+// model Social {
+//   id     String     @id @default(auto()) @map("_id") @db.ObjectId
+//   type   SocialType
+//   userId String     @db.ObjectId
+//   user   User       @relation(references: [id], fields: [userId], onDelete: Cascade)
+// }
+
+// enum SocialType {
+//   instagram
+//   facebook
+//   twitter
+//   twitch
+//   github
+//   youtube
+//   tiktok
+//   linkedin
+// }
 
 enum RoleType {
   user
