@@ -13,17 +13,19 @@ export const authConfig = {
     },
     providers: [
         google({
+            allowDangerousEmailAccountLinking: true,
             profile: (profile) => {
                 return {
                     emailVerified: profile.emailVerified,
                     name: profile.name,
                     email: profile.email,
                     image: profile.picture,
-                    username: `${profile.name}`.toLowerCase()
+                    username: `${profile.name}`.split(' ').join('').toLowerCase()
                 }
             }
         }),
         github({
+            allowDangerousEmailAccountLinking: true,
             profile: (profile) => {
                 return {
                     email: profile.email,

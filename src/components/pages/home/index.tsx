@@ -1,6 +1,6 @@
 "use client";
 
-import { getPostsByTag } from "@/actions/post";
+import { getPosts, getPostsByTag } from "@/actions/post";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Post } from "../post";
@@ -16,18 +16,20 @@ export default function SearchResults() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["search", search.get("type"), search.get("q")],
-    queryFn: async () => await getPostsByTag(search.get("q") as string),
+    queryFn: async () => await getPosts({ pageParams: 0 }),
   });
 
   return (
     <div className="w-full max-w-[36rem] flex flex-col justify-start items-center relative">
       {!isLoading &&
-        search.get("q") &&
-        search.get("type") &&
-        data?.map((item, index) => (
+        data?.data &&
+        data?.data?.length! > 0 &&
+        data.data?.map((item, index) => (
           <>
             <Post post={item} />
-            {data.length > index - 1 && <Separator orientation="horizontal" />}
+            {data?.data?.length! > index - 1 && (
+              <Separator orientation="horizontal" />
+            )}
           </>
         ))}
     </div>

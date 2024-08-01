@@ -338,18 +338,27 @@ export async function getPostsByTag(tag?: string | null) {
 
     console.log(data?.postIDs);
 
+    if (!data) {
+        return [];
+    }
+
     const results = await db.post.findMany({
         where: {
             tagIDs: {
-                has: data?.id ?? ""
+                has: data?.id
             }
         },
         orderBy: [
             {
                 likes: {
-                    _count: 'asc'
+                    _count: 'desc'
                 }
             },
+            {
+                views: {
+                    _count: 'desc'
+                }
+            }
         ],
         include: {
             medias: true,

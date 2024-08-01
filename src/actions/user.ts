@@ -5,6 +5,10 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function getPostUserByID(id: string) {
+    if (!id) {
+        return null;
+    }
+    
     const user = await db.user.findFirst({
         where: {
             id

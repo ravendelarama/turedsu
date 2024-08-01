@@ -16,6 +16,9 @@ import { Fragment, useOptimistic, useTransition } from "react";
 import { PostUser } from "@/lib/thread-types";
 import { Post } from "../post";
 import { ProfileFormModal } from "./profile-form";
+import { FaThreads } from "react-icons/fa6";
+import { cn } from "@/lib/utils";
+import LoadingPrompt from "../loading-prompt";
 
 export function UserInfoSection({ user }: { user: PostUser }) {
   const { data: session } = useSession();
@@ -132,7 +135,7 @@ export function UserPostNav({ user }: { user: PostUser }) {
 }
 
 export function UserThreads({ user }: { user: PostUser }) {
-  const { data, isSuccess } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: [user.username, "threads"],
     queryFn: async () => {
       return await getUserThreadPosts(user.id!);
@@ -143,16 +146,14 @@ export function UserThreads({ user }: { user: PostUser }) {
 
   return (
     <div className="w-full h-full flex flex-col items-center">
-      {isSuccess && data ? (
+      {!isLoading &&
+        data &&
         data?.map((item, index) => (
           <Fragment key={index}>
             <Post post={item} />
             {index != data.length - 1 && <Separator orientation="horizontal" />}
           </Fragment>
-        ))
-      ) : (
-        <LoaderCircle className="h-8 w-8 text-center animate-spin mt-10" />
-      )}
+        ))}
     </div>
   );
 }

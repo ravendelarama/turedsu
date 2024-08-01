@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/providers/theme-provider";
 import TanstackQueryProvider from "@/providers/tanstack-query-provider";
 import { auth } from "@/lib/auth";
+import { Suspense } from "react";
+import LoadingPrompt from "@/components/pages/loading-prompt";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,7 +33,9 @@ export default async function RootLayout({
             attribute="class"
           >
             <TanstackQueryProvider>
-              <div className="min-h-screen w-full">{children}</div>
+              <Suspense fallback={<LoadingPrompt />}>
+                <div className="min-h-screen w-full">{children}</div>
+              </Suspense>
               <Toaster richColors />
             </TanstackQueryProvider>
           </ThemeProvider>
