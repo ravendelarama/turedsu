@@ -11,10 +11,12 @@ import {
 import { LogOut } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function AuthButtonGroup() {
   const { data: session } = useSession();
+  const router = useRouter();
 
   return (
     <>
@@ -30,6 +32,7 @@ export default function AuthButtonGroup() {
                   type="submit"
                   onClick={(e) => {
                     toast.info("Signed out");
+                    router.refresh();
                   }}
                 >
                   <LogOut className="h-5 w-5 text-zinc-500" />
