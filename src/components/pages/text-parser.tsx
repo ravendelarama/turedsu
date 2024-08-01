@@ -54,7 +54,7 @@ export default function TextParser({ text }: { text: string }) {
             }}
           >
             <Link href={src[1]!} target="_" className="text-sky-500 inline">
-              {src[1]!}
+              {src[1].split("https://")[1]}
             </Link>
           </Button>
         );
