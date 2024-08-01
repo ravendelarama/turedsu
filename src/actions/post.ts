@@ -516,7 +516,8 @@ export async function getUserThreadPosts(id: string) {
         where: {
             userId: id,
             parentId: null
-        },include: {
+        },
+        include: {
             medias: true,
             user: {
                 select: {
@@ -548,6 +549,84 @@ export async function getUserThreadPosts(id: string) {
         orderBy: {
             createdAt: 'desc'
         }
+    });
+
+    return threads;
+}
+
+
+export async function getUserThreadReplies(id: string) {
+    if (!id) {  
+        return null;
+    }
+
+    const threads = await db.post.findMany({
+        where: {
+            userId: id,
+            parentId: {
+                not: null
+            }
+        },
+        include: {
+            medias: true,
+            parent: {
+                include: {
+                    medias: true,
+                    user: {
+                        select: {
+                            username: true,
+                            email: true,
+                            name: true,
+                            image: true,
+                            link: true,
+                            id: true,
+                            verified: true,
+                            bio: true,
+                            _count: {
+                                select: {
+                                    followedBy: true
+                                }
+                            }
+                        }
+                    },
+                    _count: {
+                        select: {
+                            likes: true,
+                            replies: true,
+                            reposts: true,
+                            quotedBy: true,
+                            views: true,
+                        }
+                    }
+                },
+            },
+            user: {
+                select: {
+                    username: true,
+                    email: true,
+                    name: true,
+                    image: true,
+                    link: true,
+                    id: true,
+                    verified: true,
+                    bio: true,
+                    _count: {
+                        select: {
+                            followedBy: true
+                        }
+                    }
+                }
+            },
+            _count: {
+                select: {
+                    likes: true,
+                    replies: true,
+                    reposts: true,
+                    quotedBy: true,
+                    views: true,
+                }
+            }
+        },
     });
 
     return threads;

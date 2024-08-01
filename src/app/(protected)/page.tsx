@@ -15,7 +15,7 @@ export default async function Home() {
         {posts ? (
           posts.map((post, index) => (
             <Fragment key={post.id!}>
-              <Post post={post!} />
+              <Post post={post!} withReply={false} />
               {posts.length - 1 != index && (
                 <Separator orientation="horizontal" />
               )}

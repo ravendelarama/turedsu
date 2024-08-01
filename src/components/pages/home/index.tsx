@@ -26,7 +26,7 @@ export default function SearchResults() {
         data?.data?.length! > 0 &&
         data.data?.map((item, index) => (
           <>
-            <Post post={item} />
+            <Post post={item} withReply={false} />
             {data?.data?.length! > index - 1 && (
               <Separator orientation="horizontal" />
             )}

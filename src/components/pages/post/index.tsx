@@ -60,6 +60,7 @@ import { PostFormModal } from "./create-post";
 import numeral from "numeral";
 import { useOptimistic, useTransition } from "react";
 import { PostItemType, PostUser } from "@/lib/thread-types";
+import { Separator } from "@/components/ui/separator";
 
 // Post Item Section
 export function PostItemHoverCard({
@@ -487,16 +488,18 @@ export function PostHeaderSection({
 export function PostAvatarSection({
   id,
   user,
+  withReply,
 }: {
   id: string;
   user: PostUser;
+  withReply: boolean;
 }) {
   const pathname = usePathname();
   return (
     <Link
       href={`/@${user?.username!}`}
       className={cn(
-        "select-none min-h-full flex flex-col justify-start items-center pt-2 px-2 space-y-1 relative",
+        "select-none min-h-full flex flex-col justify-start items-center pt-2 px-2 space-y-2 relative",
         pathname.includes(id) && "pt-0"
       )}
     >
@@ -507,9 +510,9 @@ export function PostAvatarSection({
           {user?.name?.charAt(1)}
         </AvatarFallback>
       </Avatar>
-      {/* {pathname.includes("post") && pathname.includes(id) && (
-        <Separator orientation="vertical" className="w-0.5 h-5/6 relative" />
-      )} */}
+      {withReply && (
+        <Separator orientation="vertical" className="w-0.5 h-[84%]" />
+      )}
     </Link>
   );
 }
@@ -538,7 +541,13 @@ export function PostAttachments({ post }: { post: PostItemType }) {
   return null;
 }
 
-export function Post({ post }: { post: PostItemType }) {
+export function Post({
+  post,
+  withReply,
+}: {
+  post: PostItemType;
+  withReply: boolean;
+}) {
   const router = useRouter();
 
   const pathname = usePathname();
@@ -554,7 +563,7 @@ export function Post({ post }: { post: PostItemType }) {
       }}
     >
       {/* Avatar Thread Section */}
-      <PostAvatarSection user={post.user} id={post.id} />
+      <PostAvatarSection user={post.user} id={post.id} withReply={withReply} />
       {/* Header Section */}
       <div className={cn("flex flex-col w-full")}>
         <PostHeaderSection

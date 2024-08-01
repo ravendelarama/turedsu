@@ -150,7 +150,7 @@ export function UserThreads({ user }: { user: PostUser }) {
         data &&
         data?.map((item, index) => (
           <Fragment key={index}>
-            <Post post={item} />
+            <Post post={item} withReply={false} />
             {index != data.length - 1 && <Separator orientation="horizontal" />}
           </Fragment>
         ))}
