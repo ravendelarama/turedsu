@@ -270,7 +270,7 @@ export function PostActionSection({ id }: { id: string }) {
     queryFn: async () => {
       return await getPostCounts(id);
     },
-    refetchInterval: 30 * 1000,
+    staleTime: Infinity
   });
 
   const reposts = data?._count?.reposts! + data?._count?.quotedBy! || 0;
